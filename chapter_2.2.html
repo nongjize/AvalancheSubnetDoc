@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>第二章 AvalancheGo结构分析</title>
+        <title>snowman协议实现解析</title>
 
 
         <!-- Custom HTML head -->
@@ -80,7 +80,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter_1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter_2.html" class="active"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter_2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter_2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter_1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter_2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter_2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter_2.2.html" class="active"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -141,20 +141,50 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="第二章-avalanchego结构分析"><a class="header" href="#第二章-avalanchego结构分析">第二章 AvalancheGo结构分析</a></h1>
-<p>Avalanche采用了独特的三层网络结构，将执行环境和链本身分开，分为X链（交易链）、P链（平台链）、C链（合约链）。整个Avalanche网络依赖「雪」系列共识协议运行，该系列协议结合了拜占庭共识协议和工作量证明协议，衍生出了雪崩（Avalanche）、雪人（Snowman）和霜白（Frosty）三部分协议，其中X链使用雪崩协议，P链和C链使用雪人协议。</p>
+                        <h2 id="snowman协议实现解析"><a class="header" href="#snowman协议实现解析">snowman协议实现解析</a></h2>
+<p>【二】接口实现
+Topological 结构实现了 Snowman.Consensus接口，通过一颗树结构来实现对最大意向分支的跟踪维护，具体实现如下。
+type Topological struct {
+metrics.Latency
+metrics.Polls
+pollNumber uint64 // pollNumber is the number of times RecordPolls has been called	
+ctx *snow.ConsensusContext // ctx is the context this snowman instance is executing in
+params snowball.Parameters // params are the parameters that should be used to initialize snowball instances
+head ids.ID // head is the last accepted block</p>
+<pre><code>// height is the height of the last accepted block
+height uint64
+
+// blocks stores the last accepted block and all the pending blocks
+blocks map[ids.ID]*snowmanBlock // blockID -&gt; snowmanBlock
+
+// preferredIDs stores the set of IDs that are currently preferred.
+preferredIDs ids.Set //preferred 分支上所有block的id的集合
+
+// tail is the preferred block with no children
+tail ids.ID
+
+// Used in [calculateInDegree] and.
+// Should only be accessed in that method.
+// We use this one instance of ids.Set instead of creating a
+// new ids.Set during each call to [calculateInDegree].
+leaves ids.Set
+//leaves和kahnNodes只用于临时存储，只在调用calculateInDegree的时候使用，只是面对一个voteBag
+// Kahn nodes used in [calculateInDegree] and [markAncestorInDegrees].
+// Should only be accessed in those methods.
+// We use this one map instead of creating a new map
+// during each call to [calculateInDegree].
+kahnNodes map[ids.ID]kahnNode
+</code></pre>
+<p>}</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="chapter_1.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="chapter_2.1.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="chapter_2.1.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -162,13 +192,10 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="chapter_1.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="chapter_2.1.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="chapter_2.1.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
             </nav>
 
         </div>

@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Chapter 1</title>
+        <title>第一章 Avalanche共识协议介绍</title>
 
 
         <!-- Custom HTML head -->
@@ -80,7 +80,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter_1.html" class="active"><strong aria-hidden="true">1.</strong> Chapter 1</a></li><li class="chapter-item expanded "><a href="chapter_2.html"><strong aria-hidden="true">2.</strong> Chapter 2的</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter_1.html" class="active"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter_2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter_2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter_2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -141,12 +141,162 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="chapter-1"><a class="header" href="#chapter-1">Chapter 1</a></h1>
-<p>的发光角度考虑给</p>
-<h2 id="两个好标题"><a class="header" href="#两个好标题">两个#好标题</a></h2>
-<p>上的飞机</p>
-<h3 id="三个-的标题"><a class="header" href="#三个-的标题">三个# 的标题</a></h3>
-<p>内推</p>
+                        <h1 id="第一章-avalanche共识协议介绍"><a class="header" href="#第一章-avalanche共识协议介绍">第一章 Avalanche共识协议介绍</a></h1>
+<p>Avalanche共识协议一种抽样投票基于亚稳态机制（metastable）的共识协议族，亚稳态是Avalanche协议的一个主要原理，它是通过传递“信任阈值”来达成共识。这种信任阈值通过网络传播，结构化和验证信息。亚稳态通常在高可用性数据库中可以看到达到共识结果的法定人数，其中还包含有助于系统快速达成共识的其他结构信息。为了有效地在网络上传播信息，单个节点将信息x传播到n个节点的网络中的法定数量k个节点，然后又将x传播到另一个法定数量k个节点。在分布系统中，对于接受和验证信息x是会存在相反意见的，人们希望协议的信任阈值的大小值是整个K节点中有超过2/3k的多数节点。因此，与传统的基于gossip协议的共识协议的显着区别在于亚稳态通过法定节点数量传播信息，而不是通过单个节点之间互相传播信息，从而保持整体较低的通信成本。
+Avalanche共识协议具体来说是一个协议族，主要包含Slush、flake、snowball、avalanche四种共识算法。
+这个共识协议族有绿色、安静、高效的特点。绿色（Green）消耗很少能源；安静（Quiescent）没有交易时不需要工作（相对比特币，比特币在没有交易的时候矿工也要不断工作）；高效（Efficient）节点交互复杂度O(knlogn) ~ O(kn)。
+Avalanche共识算法有以下特点：
+1、并行共识模型：不使用单一复制状态机（RSM）模型，每个节点维护自己的RSM（可以互相转移所有权），系统对有关联的交易只维护偏序（partial order）
+2、反复随机采样：引导正常节点产生相同输出
+3、亚稳态决策：亚稳态决策可以使得一个大网络快速推进到一个不可逆的状态（虽然不能100%保证）
+此外，该共识协议提出的算法可以提供强概率安全性保证，并且保证诚实节点的活性。所谓“强概率安全保证”，是指共识被逆转的可能性小到可以被忽略（甚至小于哈希冲突的概率），实际上比特币的POW提供的也是强概率安全性保证。该共识协议理论分析通过了实验验证，实验结果和理论分析基本吻合。
+目前，Avalanche协议最典型的实现版本是AvalancheGO，也是Ava Lab实验室的官方实现版本。本书实践内容均是基于AvalancheGo实现。</p>
+<h2 id="共识接口抽象封装"><a class="header" href="#共识接口抽象封装">共识接口（抽象封装）</a></h2>
+<p>snowman.Consensus接口是一个封装成可以处理独立事务（单个block）并实现共识的功能模块，主要接口功能有：</p>
+<p>【1】NumProcessing() int
+返回当前共识处理区正在处理的区块数量；</p>
+<p>【2】Add(Block) error
+向共识处理区中加入新的区块（待加入共识）</p>
+<p>【3】
+AcceptedOrProcessing(Block) bool  #判断某一区块是否已被接受或在处理中
+DecidedOrProcessing(Block) bool    #判断某一区块是否已被决定（被接受或者被拒绝）或在处理中
+IsPreferred(Block) bool                    #判断某一区块是否是最佳候选分支上的区块</p>
+<p>【4】
+Preference() ids.ID
+获取当前节点最佳候选分支的最末端区块</p>
+<p>【5】
+RecordPoll(ids.Bag) error
+将网络投票结果进行统计计算并进行相关处理</p>
+<p>【6】
+Finalized() bool                               #判断共识处理区是否还有带处理的共识
+HealthCheck() (interface{}, error)     #返回共识处理区的运行健康情况
+// Consensus represents a general snowman instance that can be used directly to
+// process a series of dependent operations.
+type Consensus interface {
+// Takes in the context, snowball parameters, and the last accepted block.
+Initialize(
+ctx *snow.ConsensusContext,
+params snowball.Parameters,
+lastAcceptedID ids.ID,
+lastAcceptedHeight uint64,
+) error</p>
+<pre><code>// Returns the parameters that describe this snowman instance
+Parameters() snowball.Parameters
+
+// Returns the number of blocks processing
+NumProcessing() int
+
+// Adds a new decision. Assumes the dependency has already been added.
+// Returns if a critical error has occurred.
+Add(Block) error
+
+// AcceptedOrProcessing returns true if the block has been accepted or is
+// currently processing
+AcceptedOrProcessing(Block) bool
+
+// DecidedOrProcessing returns true if the block has been decided or is
+// currently processing.
+DecidedOrProcessing(Block) bool
+
+// IsPreferred returns true if the block is currently on the preferred
+// chain.
+IsPreferred(Block) bool
+
+// Returns the ID of the tail of the strongly preferred sequence of
+// decisions.
+Preference() ids.ID
+
+// RecordPoll collects the results of a network poll. Assumes all decisions
+// have been previously added. Returns if a critical error has occurred.
+RecordPoll(ids.Bag) error
+
+// Finalized returns true if all decisions that have been added have been
+// finalized. Note, it is possible that after returning finalized, a new
+// decision may be added such that this instance is no longer finalized.
+Finalized() bool
+
+// HealthCheck returns information about the consensus health.
+HealthCheck() (interface{}, error)
+</code></pre>
+<p>}</p>
+<h2 id="snowman协议具体实现"><a class="header" href="#snowman协议具体实现">snowman协议具体实现</a></h2>
+<p>【1】snowman.Topological 是一个实现了snowman.Consensus接口的一个struct；
+【2】其中包含了对snowmanBlock的操作，维持有一个 字典结构   blocks map[ids.ID]*snowmanBlock；
+【3】snowmanBlock中用到了 snowball.Consensus的实例 snowball.Tree{}，snowball.Consensus实现了具体的avalanche共识算法。</p>
+<p>在snowman.Consensus层面：主要负责向Topological结构中加入block，同时从合规网络中抽取投票结果并把结果传递给Consensus实现结构Topological.具体共识计算由snowman.block来计算。</p>
+<p>snowman.snowmanBlock是Avalanche共识算法区块化部分，这个结构体主要是通过打包几个关键结构来起到整合的作用，该结构体只有两个方法，AddChild(child Block)和Accepted()， snowman.snowmanBlock具体封装如下：</p>
+<p>// Tracks the state of a snowman block 用于跟踪维护snowman.Block的状态（是否被接受/拒绝等）
+type snowmanBlock struct {
+sm Consensus   // pointer to the snowman instance this node is managed by	
+blk Block  // block that this node contains. For the genesis, this value will be nil
+shouldFalter bool // shouldFalter is set to true if this node, and all its descendants received less than Alpha votes</p>
+<pre><code>// sb is the snowball instance used to decided which child is the canonical
+// child of this block. If this node has not had a child issued under it,
+// this value will be nil
+sb snowball.Consensus
+
+// children is the set of blocks that have been issued that name this block
+// as their parent. If this node has not had a child issued under it, this value
+// will be nil
+children map[ids.ID]Block //区块 Block中只有Parent，没有children，此处记录Children是
+</code></pre>
+<p>} //由于avalanche共识协议中利用区块父子关系进行连坐制实现批量抽样投票所需。</p>
+<h2 id="snowball详解"><a class="header" href="#snowball详解">snowball详解</a></h2>
+<p>snowball.Consensus接口定义了一个snowball的具体实现方法和逻辑，表示可以直接用啦处理网络投票结果的功能模块。本质是承接了共识计算统计功能：根据给定安全系数来计算处理网络投票结果，最终确定该投票是否已经是全网共识的结果。</p>
+<p><em>注意</em> 投票结果在给到snowball的前提条件是：
+【1】所投票的内容是符合VM逻辑的；
+【2】投票来源是P链提供的符合规定的节点（随机抽取）</p>
+<p>此处以线性区块链作为案例：一个投票对象就是一个snowball,所以每一个区块在处理的时候都是以接口主要方法有（不全）：
+Add(newChoice ids.ID) 
+#添加一个候选区块
+RecordPoll(votes ids.Bag)
+#统计一次投票结果
+RecordUnsuccessfulPoll()
+#针对投票失败（即没有达到α票数），这时需要对累加器置零（Avalanche共识算法规定）</p>
+<h2 id="共识引擎核心功能为共识算法统筹投票结果"><a class="header" href="#共识引擎核心功能为共识算法统筹投票结果">共识引擎核心功能—为共识算法统筹投票结果</a></h2>
+<p>Blockable
+// Blockable defines what an object must implement to be able to block on events
+一个对象，可以被events.Blocker阻塞管理的对象。
+type Blockable interface {
+Dependencies() ids.Set  // IDs that this object is blocking on
+Fulfill(ids.ID) // Notify this object that an event has been fulfilled
+Abandon(ids.ID) // Notify this object that an event has been abandoned
+Update() // Update the state of this object without changing the status of any events
+}
+【Blockable小结】Blockable可以根据特定依赖条件来出发特定的动作。简单实现事件驱动机制。以下结构均实现了该接口功能：
+snowman.voter：当接收到一个chit时，engine不会立即进行记录，会先查看等待其依赖条件是否满足，满足条件后voter才会开始调用记录chit功能模块。
+snowman.issuer: 当依赖条件满足时，issuer 会将一个区块发往共识处理区。
+snowman.convincer：当条件达到时，会发送一个chits到一个特定的validator note.</p>
+<p>Blockable接口实列voter
+通过voter.Update()来调用Transitive的polls.Vote()来计算结果，并将结果传递给snowman.RecordPoll(ids.Bag) error。
+在继续下一步之前，需要将poll进一步解剖【详见《poll具体实现》】</p>
+<p>events.Blocker</p>
+<p>event.voter :事件驱动模式，在满足条件的情况下会调用transitive中topological(snowman.Consensus)的RecordPoll(result)</p>
+<h2 id="poll解析"><a class="header" href="#poll解析">Poll解析</a></h2>
+<p>poll.Poll接口
+表示一轮投票poll，每一轮poll确定好要随机取样的节点（随机K个，有可能有一个点被重复取样一次以上），poll完成(收集到α个相同的投票)后即可以进入topological(snowman.Consensus实现实列) recordpoll(ID).
+type Set interface {
+fmt.Stringer
+Add(requestID uint32, vdrs ids.ShortBag) bool
+Vote(requestID uint32, vdr ids.ShortID, vote ids.ID) []ids.Bag
+Drop(requestID uint32, vdr ids.ShortID) []ids.Bag
+Len() int
+}
+两个实现主要是finished条件不一样：
+【实现一】earlyTermNoTraversalPoll #当剩下的validators已经无法改变该结果的时候就finishes.
+type earlyTermNoTraversalPoll struct {
+votes  ids.Bag             #选票数量统计，初始为0
+polled ids.ShortBag   #投票人，每一个poll在创建的时候就确定好目标投票人（从P链中的节点随机选出k个）
+alpha  int                   #α
+}
+【实现二】noEarlyTermPoll #所有的validators要么有回应，要么超时才finishes.
+type noEarlyTermPoll struct {
+votes  ids.Bag
+polled ids.ShortBag
+}
+abc</p>
+<p>【1】在AvalancheGo实现中，有一个参数：transitive.Params.ConcurrentRepolls用于同时进行网络poll的数量，即可以同时进行poll。(此处不清楚该操作是否会对网络安全有影响，待进一步参考相关资料)
+【2】每一次poll都是直接发送pullQuery(prefID),只发送当前prefID.</p>
 
                     </main>
 
