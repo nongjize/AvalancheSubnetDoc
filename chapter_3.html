@@ -1,0 +1,295 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>第三章 Subnet by rust</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter_1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter_2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter_2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter_2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li><li class="chapter-item expanded "><a href="chapter_3.html" class="active"><strong aria-hidden="true">3.</strong> 第三章 Subnet by rust</a></li><li class="chapter-item expanded "><a href="chapter_4.html"><strong aria-hidden="true">4.</strong> 第四章 Subnet by go</a></li><li class="chapter-item expanded "><a href="Go-Plugin/hashicorpGoPlugin.html"><strong aria-hidden="true">5.</strong> Hashicop Go Plugin</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title"></h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <p><a href="https://crates.io/crates/timestampvm"><img alt="crates.io" src="https://img.shields.io/crates/v/timestampvm.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20"></a>
+<a href="https://docs.rs/timestampvm"><img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-timestampvm-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20"></a>
+<img src="https://github.com/ava-labs/timestampvm-rs/actions/workflows/test-and-release.yml/badge.svg" alt="Github Actions" /></p>
+<h1 id="timestampvm-rs"><a class="header" href="#timestampvm-rs"><code>timestampvm-rs</code></a></h1>
+<p><code>timestampvm-rs</code> is a virtual machine that can build blocks from a user-provided arbitrary data. It is a minimal implementation of an Avalanche custom virtual machine (VM) in Rust, using the Avalanche <a href="https://github.com/ava-labs/avalanche-types-rs">Rust SDK</a>.</p>
+<p>Currently, Avalanche custom VM requires the following:</p>
+<ol>
+<li>Compiled to a binary that <code>avalanchego</code> can launch as a sub-process.</li>
+<li>Plugin binary path in hash of 32 bytes.</li>
+<li>Implements <a href="https://pkg.go.dev/github.com/ava-labs/avalanchego/snow/engine/snowman/block#ChainVM"><code>snowman.block.ChainVM</code></a> interface that can be be registered via <a href="https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/rpcchainvm#Serve"><code>rpcchainvm.Serve</code></a>.</li>
+<li>Implements VM-specific services that can be served via URL path of the blockchain ID.</li>
+<li>(Optionally) Implements VM-specific static handlers that can be served via URL path of the VM ID.</li>
+</ol>
+<p>For example, the timestamp VM can be run as follows:</p>
+<pre><pre class="playground"><code class="language-rust">use avalanche_types::subnet;
+use timestampvm::vm;
+use tokio::sync::broadcast::{self, Receiver, Sender};
+
+#[tokio::main]
+async fn main() -&gt; std::io::Result&lt;()&gt; {
+    let (stop_ch_tx, stop_ch_rx): (Sender&lt;()&gt;, Receiver&lt;()&gt;) = broadcast::channel(1);
+    let vm_server = subnet::rpc::vm::server::Server::new(vm::Vm::new(), stop_ch_tx);
+    subnet::rpc::plugin::serve(vm_server, stop_ch_rx).await
+}</code></pre></pre>
+<p>See <a href="timestampvm/src/bin/timestampvm/main.rs"><code>bin/timestampvm</code></a> for plugin implementation and <a href="tests/e2e/src/tests/mod.rs"><code>tests/e2e</code></a> for full end-to-end tests.</p>
+<h2 id="avalanchego-compatibility"><a class="header" href="#avalanchego-compatibility">AvalancheGo Compatibility</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>Version(s)</th><th>AvalancheGo Version(s)</th></tr></thead><tbody>
+<tr><td>v0.0.6</td><td>v1.9.2,v1.9.3</td></tr>
+<tr><td>v0.0.7</td><td>v1.9.4</td></tr>
+</tbody></table>
+</div>
+<h2 id="example"><a class="header" href="#example">Example</a></h2>
+<pre><code class="language-bash"># build the timestampvm plugin, run e2e tests, and keep the network running
+./scripts/build.release.sh \
+&amp;&amp; VM_PLUGIN_PATH=$(pwd)/target/release/timestampvm \
+./scripts/tests.e2e.sh
+
+# or, specify the custom avalanchego binary
+./scripts/build.release.sh \
+&amp;&amp; VM_PLUGIN_PATH=$(pwd)/target/release/timestampvm \
+./scripts/tests.e2e.sh ~/go/src/github.com/ava-labs/avalanchego/build/avalanchego
+
+# (optional) set NETWORK_RUNNER_ENABLE_SHUTDOWN=1 in &quot;tests.e2e.sh&quot;
+# to shut down the network afterwards
+</code></pre>
+<p>To test <code>timestampvm</code> APIs, try the following commands:</p>
+<pre><code class="language-bash"># &quot;tGas3T58KzdjcJ2iKSyiYsWiqYctRXaPTqBCA11BqEkNg8kPc&quot; is the Vm Id
+# e.g., timestampvm vm-id timestampvm
+curl -X POST --data '{
+    &quot;jsonrpc&quot;: &quot;2.0&quot;,
+    &quot;id&quot;     : 1,
+    &quot;method&quot; : &quot;timestampvm.ping&quot;,
+    &quot;params&quot; : []
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/vm/tGas3T58KzdjcJ2iKSyiYsWiqYctRXaPTqBCA11BqEkNg8kPc/static
+
+# {&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;result&quot;:{&quot;success&quot;:true},&quot;id&quot;:1}
+</code></pre>
+<pre><code class="language-bash"># &quot;2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7&quot; is the blockchain Id
+curl -X POST --data '{
+    &quot;jsonrpc&quot;: &quot;2.0&quot;,
+    &quot;id&quot;     : 1,
+    &quot;method&quot; : &quot;timestampvm.ping&quot;,
+    &quot;params&quot; : []
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7/rpc
+
+# {&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;result&quot;:{&quot;success&quot;:true},&quot;id&quot;:1}
+</code></pre>
+<pre><code class="language-bash"># to get genesis block
+# &quot;2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7&quot; is the blockchain Id
+curl -X POST --data '{
+    &quot;jsonrpc&quot;: &quot;2.0&quot;,
+    &quot;id&quot;     : 1,
+    &quot;method&quot; : &quot;timestampvm.lastAccepted&quot;,
+    &quot;params&quot; : []
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7/rpc
+
+# {&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;result&quot;:{&quot;id&quot;:&quot;SDfFUzkdzWZbJ6YMysPPNEF5dWLp9q35mEMaLa8Ha2w9aMKoC&quot;},&quot;id&quot;:1}
+
+# &quot;2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7&quot; is the blockchain Id
+curl -X POST --data '{
+    &quot;jsonrpc&quot;: &quot;2.0&quot;,
+    &quot;id&quot;     : 1,
+    &quot;method&quot; : &quot;timestampvm.getBlock&quot;,
+    &quot;params&quot; : [{&quot;id&quot;:&quot;SDfFUzkdzWZbJ6YMysPPNEF5dWLp9q35mEMaLa8Ha2w9aMKoC&quot;}]
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7/rpc
+
+# {&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;result&quot;:{&quot;block&quot;:{&quot;data&quot;:&quot;0x32596655705939524358&quot;,&quot;height&quot;:0,&quot;parent_id&quot;:&quot;11111111111111111111111111111111LpoYY&quot;,&quot;timestamp&quot;:0}},&quot;id&quot;:1}
+</code></pre>
+<pre><code class="language-bash"># to propose data
+echo 1 | base64 | tr -d \\n
+# MQo=
+
+curl -X POST --data '{
+    &quot;jsonrpc&quot;: &quot;2.0&quot;,
+    &quot;id&quot;     : 1,
+    &quot;method&quot; : &quot;timestampvm.proposeBlock&quot;,
+    &quot;params&quot; : [{&quot;data&quot;:&quot;MQo=&quot;}]
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7/rpc
+
+# {&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;result&quot;:{&quot;success&quot;:true},&quot;id&quot;:1}
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="chapter_2.2.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="chapter_4.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="chapter_2.2.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="chapter_4.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </body>
+</html>
