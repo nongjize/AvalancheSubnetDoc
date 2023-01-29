@@ -1,0 +1,324 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>API</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li><li class="chapter-item expanded "><a href="chapter3.html"><strong aria-hidden="true">3.</strong> 第三章 VM与AvalancheGo的连接</a></li><li class="chapter-item expanded "><a href="chapter4.html"><strong aria-hidden="true">4.</strong> 第四章 Subnet by go</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter4.1.html"><strong aria-hidden="true">4.1.</strong> 时间戳服务器的实现Virtual Machine</a></li><li class="chapter-item expanded "><a href="chapter4.2.html"><strong aria-hidden="true">4.2.</strong> Static API</a></li><li class="chapter-item expanded "><a href="chapter4.3.html" class="active"><strong aria-hidden="true">4.3.</strong> API</a></li><li class="chapter-item expanded "><a href="chapter4.4.html"><strong aria-hidden="true">4.4.</strong> 封装运行</a></li></ol></li><li class="chapter-item expanded "><a href="chapter5.html"><strong aria-hidden="true">5.</strong> 第五章 专用EVM开发</a></li><li class="chapter-item expanded "><a href="chapter6.html"><strong aria-hidden="true">6.</strong> 第六章 本地网络模拟ANR</a></li><li class="chapter-item expanded "><a href="chapter7.html"><strong aria-hidden="true">7.</strong> 第七章 本地调试</a></li><li class="chapter-item expanded "><a href="chapter8.html"><strong aria-hidden="true">8.</strong> 第八章 生产环境部署</a></li><li class="chapter-item expanded "><a href="SubnetByRust.html"><strong aria-hidden="true">9.</strong> Subnet by rust</a></li><li class="chapter-item expanded "><a href="SubnetByGo.html"><strong aria-hidden="true">10.</strong> Subnet by go</a></li><li class="chapter-item expanded "><a href="Go-Plugin/hashicorpGoPlugin.html"><strong aria-hidden="true">11.</strong> Hashicop Go Plugin</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title"></h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h2 id="api"><a class="header" href="#api">API</a></h2>
+<p>非静态API,即可以对链上数据进行查询和修改的API（修改指的是提交区块链交易信息），代码如下。不同于StaticService,Service有一个引用VM的字段，因为这里面的API需要与链上数据进行交互。
+/timestampvm/service.go
+// Service is the API service for this VM
+type Service struct{ vm *VM }</p>
+<p>这里面主要有两个API方法，一个是可以通过ID获取block。另外一个是可以向区块链推送下一个区块。</p>
+<p>timestampvm.getBlock
+调用案例timestampvm.getBlock：
+timestampvm.getBlock({id: string}) -&gt;
+{
+id: string,
+data: string,
+timestamp: int,
+parentID: string
+}</p>
+<p>返回数据解析：查询的区块id，区块数据（base58编码）在timestamp区块链中，我们定义的数据是一个只有32byte的载荷数据，timestamp时间戳，parenteID 所查询的区块的父区块的ID。
+调用方法及返回结果：
+curl -X POST --data '{
+&quot;jsonrpc&quot;: &quot;2.0&quot;,
+&quot;method&quot;: &quot;timestampvm.getBlock&quot;,
+&quot;params&quot;:{
+&quot;id&quot;:&quot;xqQV1jDnCXDxhfnNT7tDBcXeoH2jC3Hh7Pyv4GXE1z1hfup5K&quot;
+},
+&quot;id&quot;: 1
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/sw813hGSWH8pdU9uzaYy9fCtYFfY7AjDd2c9rm64SbApnvjmk
+{
+&quot;jsonrpc&quot;: &quot;2.0&quot;,
+&quot;result&quot;: {
+&quot;timestamp&quot;: &quot;1581717416&quot;,
+&quot;data&quot;: &quot;11111111111111111111111111111111LpoYY&quot;,
+&quot;id&quot;: &quot;xqQV1jDnCXDxhfnNT7tDBcXeoH2jC3Hh7Pyv4GXE1z1hfup5K&quot;,
+&quot;parentID&quot;: &quot;22XLgiM5dfCwTY9iZnVk8ZPuPe3aSrdVr5Dfrbxd3ejpJd7oef&quot;
+},
+&quot;id&quot;: 1
+}</p>
+<p>具体实现：
+/timestampvm/service.go
+// GetBlockArgs are the arguments to GetBlock
+type GetBlockArgs struct {
+// ID of the block we're getting.
+// If left blank, gets the latest block
+ID *ids.ID <code>json:&quot;id&quot;</code>
+}</p>
+<p>// GetBlockReply is the reply from GetBlock
+type GetBlockReply struct {
+Timestamp json.Uint64 <code>json:&quot;timestamp&quot;</code> // Timestamp of most recent block
+Data      string      <code>json:&quot;data&quot;</code>      // Data in the most recent block. Base 58 repr. of 5 bytes.
+ID        ids.ID      <code>json:&quot;id&quot;</code>        // String repr. of ID of the most recent block
+ParentID  ids.ID      <code>json:&quot;parentID&quot;</code>  // String repr. of ID of the most recent block's parent
+}</p>
+<p>// GetBlock gets the block whose ID is [args.ID]
+// If [args.ID] is empty, get the latest block
+func (s *Service) GetBlock(_ *http.Request, args *GetBlockArgs, reply *GetBlockReply) error {
+// If an ID is given, parse its string representation to an ids.ID
+// If no ID is given, ID becomes the ID of last accepted block
+var (
+id  ids.ID
+err error
+)</p>
+<pre><code>if args.ID == nil {
+    id, err = s.vm.state.GetLastAccepted()
+    if err != nil {
+        return errCannotGetLastAccepted
+    }
+} else {
+    id = *args.ID
+}
+
+// Get the block from the database
+block, err := s.vm.getBlock(id)
+if err != nil {
+    return errNoSuchBlock
+}
+
+// Fill out the response with the block's data
+reply.ID = block.ID()
+reply.Timestamp = json.Uint64(block.Timestamp().Unix())
+reply.ParentID = block.Parent()
+data := block.Data()
+reply.Data, err = formatting.EncodeWithChecksum(formatting.CB58, data[:])
+return err
+</code></pre>
+<p>}</p>
+<p>timestampvm.proposeBlock
+此API用于向区块链提交内容，即下一个区块的内容。
+方法Signature：
+timestampvm.proposeBlock({data: string}) -&gt; {success: bool}</p>
+<p>参数说明：上传32位的需要记录在区块链上数据，返回bool值。</p>
+<p>调用方式及返回内容：
+curl -X POST --data '{
+&quot;jsonrpc&quot;: &quot;2.0&quot;,
+&quot;method&quot;: &quot;timestampvm.proposeBlock&quot;,
+&quot;params&quot;:{
+&quot;data&quot;:&quot;SkB92YpWm4Q2iPnLGCuDPZPgUQMxajqQQuz91oi3xD984f8r&quot;
+},
+&quot;id&quot;: 1
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/sw813hGSWH8pdU9uzaYy9fCtYFfY7AjDd2c9rm64SbApnvjmk
+{
+&quot;jsonrpc&quot;: &quot;2.0&quot;,
+&quot;result&quot;: {
+&quot;Success&quot;: true
+},
+&quot;id&quot;: 1
+}</p>
+<p>具体实现：
+// ProposeBlockArgs are the arguments to ProposeValue
+type ProposeBlockArgs struct {
+// Data for the new block. Must be base 58 encoding (with checksum) of 32 bytes.
+Data string
+}</p>
+<p>// ProposeBlockReply is the reply from function ProposeBlock
+type ProposeBlockReply struct{
+// True if the operation was successful
+Success bool
+}</p>
+<p>// ProposeBlock is an API method to propose a new block whose data is [args].Data.
+// [args].Data must be a string repr. of a 32 byte array
+func (s *Service) ProposeBlock(_ *http.Request, args *ProposeBlockArgs, reply *ProposeBlockReply) error {
+bytes, err := formatting.Decode(formatting.CB58, args.Data)
+if err != nil || len(bytes) != dataLen {
+return errBadData
+}</p>
+<pre><code>var data [dataLen]byte         // The data as an array of bytes
+copy(data[:], bytes[:dataLen]) // Copy the bytes in dataSlice to data
+
+s.vm.proposeBlock(data)
+reply.Success = true
+return nil
+</code></pre>
+<p>}</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="chapter4.2.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="chapter4.4.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="chapter4.2.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="chapter4.4.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </body>
+</html>

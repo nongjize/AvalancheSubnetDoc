@@ -1,0 +1,537 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>第四章 Subnet by go</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li><li class="chapter-item expanded "><a href="chapter3.html"><strong aria-hidden="true">3.</strong> 第三章 VM与AvalancheGo的连接</a></li><li class="chapter-item expanded "><a href="chapter4.html" class="active"><strong aria-hidden="true">4.</strong> 第四章 Subnet by go</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter4.1.html"><strong aria-hidden="true">4.1.</strong> 时间戳服务器的实现Virtual Machine</a></li><li class="chapter-item expanded "><a href="chapter4.2.html"><strong aria-hidden="true">4.2.</strong> Static API</a></li><li class="chapter-item expanded "><a href="chapter4.3.html"><strong aria-hidden="true">4.3.</strong> API</a></li><li class="chapter-item expanded "><a href="chapter4.4.html"><strong aria-hidden="true">4.4.</strong> 封装运行</a></li></ol></li><li class="chapter-item expanded "><a href="chapter5.html"><strong aria-hidden="true">5.</strong> 第五章 专用EVM开发</a></li><li class="chapter-item expanded "><a href="chapter6.html"><strong aria-hidden="true">6.</strong> 第六章 本地网络模拟ANR</a></li><li class="chapter-item expanded "><a href="chapter7.html"><strong aria-hidden="true">7.</strong> 第七章 本地调试</a></li><li class="chapter-item expanded "><a href="chapter8.html"><strong aria-hidden="true">8.</strong> 第八章 生产环境部署</a></li><li class="chapter-item expanded "><a href="SubnetByRust.html"><strong aria-hidden="true">9.</strong> Subnet by rust</a></li><li class="chapter-item expanded "><a href="SubnetByGo.html"><strong aria-hidden="true">10.</strong> Subnet by go</a></li><li class="chapter-item expanded "><a href="Go-Plugin/hashicorpGoPlugin.html"><strong aria-hidden="true">11.</strong> Hashicop Go Plugin</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title"></h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="第四章-创建虚拟机vm"><a class="header" href="#第四章-创建虚拟机vm">第四章 创建虚拟机VM</a></h1>
+<p>为了能与avalanche 共识引擎兼容协调，vm的实现需要遵循很多接口规定，功能接口的封装也需要符合协议要求。具体参考第二章 VM的工作原理。
+时间戳服务器TimestampVM案例
+根据前面的介绍，我们现在已经知道了VM需要实现的诸多接口，以及一些libraries。接下来我们着手实现一个 TimestampVM 区块链时间戳服务器。
+编码解码模块
+Codec 用于将block编码、反编码成[]byte. 这里TimestampVM需要用到默认的codec和管理模块。
+【codec.go】: 编码模块
+//timestampvm/codec.go
+const (CodecVersion = 0) // CodecVersion is the current default codec version
+var (  Codec codec.Manager) // Codecs do serialization and deserialization
+func init() {
+c := linearcodec.NewDefault()// Create default codec and manager
+Codec = codec.NewDefaultManager()
+// Register codec to manager with CodecVersion
+if err := Codec.RegisterCodec(CodecVersion, c); err != nil {
+panic(err)
+}
+}</p>
+<p>State
+State :接口定义了与数据库相关的事务，对数据库的操作细节进行封装。每一个VM都需要自己定义数据库的相关操作方法（根据实际业务）。同时，State还嵌入了BlockState接口，此接口定义了与区块相关的状态操作。
+【state.go】:
+var (
+// These are prefixes for db keys.
+// It's important to set different prefixes for each separate database objects.
+singletonStatePrefix = []byte(&quot;singleton&quot;)
+blockStatePrefix     = []byte(&quot;block&quot;)
+_ State = &amp;state{}
+)</p>
+<p>// State is a wrapper around avax.SingleTonState and BlockState
+// State also exposes a few methods needed for managing database commits and close.
+type State interface {
+// SingletonState is defined in avalanchego,
+// it is used to understand if db is initialized already.
+avax.SingletonState
+BlockState</p>
+<pre><code>Commit() error
+Close() error
+</code></pre>
+<p>}</p>
+<p>type state struct {
+avax.SingletonState
+BlockState</p>
+<pre><code>baseDB *versiondb.Database
+</code></pre>
+<p>}</p>
+<p>func NewState(db database.Database, vm *VM) State {
+// create a new baseDB
+baseDB := versiondb.New(db)</p>
+<pre><code>// create a prefixed &quot;blockDB&quot; from baseDB
+blockDB := prefixdb.New(blockStatePrefix, baseDB)
+// create a prefixed &quot;singletonDB&quot; from baseDB
+singletonDB := prefixdb.New(singletonStatePrefix, baseDB)
+
+// return state with created sub state components
+return &amp;state{
+    BlockState:     NewBlockState(blockDB, vm),
+    SingletonState: avax.NewSingletonState(singletonDB),
+    baseDB:         baseDB,
+}
+</code></pre>
+<p>}</p>
+<p>// Commit commits pending operations to baseDB
+func (s *state) Commit() error {
+return s.baseDB.Commit()
+}</p>
+<p>// Close closes the underlying base database
+func (s *state) Close() error {
+return s.baseDB.Close()
+}</p>
+<p>BlockStake
+此接口实现为VM提供了存取blocks的储存功能。
+【BlockState.go】:
+const ( lastAcceptedByte byte = iota)</p>
+<p>const (
+// maximum block capacity of the cache
+blockCacheSize = 8192
+)</p>
+<p>// persists lastAccepted block IDs with this key
+var lastAcceptedKey = []byte{lastAcceptedByte}</p>
+<p>var _ BlockState = &amp;blockState{}</p>
+<p>// BlockState defines methods to manage state with Blocks and LastAcceptedIDs.
+type BlockState interface {
+GetBlock(blkID ids.ID) (*Block, error)
+PutBlock(blk *Block) error</p>
+<pre><code>GetLastAccepted() (ids.ID, error)
+SetLastAccepted(ids.ID) error
+</code></pre>
+<p>}</p>
+<p>// blockState implements BlocksState interface with database and cache.
+type blockState struct {
+// cache to store blocks
+blkCache cache.Cacher
+// block database
+blockDB      database.Database
+lastAccepted ids.ID</p>
+<pre><code>// vm reference
+vm *VM
+</code></pre>
+<p>}</p>
+<p>// blkWrapper wraps the actual blk bytes and status to persist them together
+type blkWrapper struct {
+Blk    []byte         <code>serialize:&quot;true&quot;</code>
+Status choices.Status <code>serialize:&quot;true&quot;</code>
+}</p>
+<p>// NewBlockState returns BlockState with a new cache and given db
+func NewBlockState(db database.Database, vm *VM) BlockState {
+return &amp;blockState{
+blkCache: &amp;cache.LRU{Size: blockCacheSize},
+blockDB:  db,
+vm:       vm,
+}
+}</p>
+<p>// GetBlock gets Block from either cache or database
+func (s *blockState) GetBlock(blkID ids.ID) (*Block, error) {
+// Check if cache has this blkID
+if blkIntf, cached := s.blkCache.Get(blkID); cached {
+// there is a key but value is nil, so return an error
+if blkIntf == nil {
+return nil, database.ErrNotFound
+}
+// We found it return the block in cache
+return blkIntf.(*Block), nil
+}</p>
+<pre><code>// get block bytes from db with the blkID key
+wrappedBytes, err := s.blockDB.Get(blkID[:])
+if err != nil {
+    // we could not find it in the db, let's cache this blkID with nil value
+    // so next time we try to fetch the same key we can return error
+    // without hitting the database
+    if err == database.ErrNotFound {
+        s.blkCache.Put(blkID, nil)
+    }
+    // could not find the block, return error
+    return nil, err
+}
+
+// first decode/unmarshal the block wrapper so we can have status and block bytes
+blkw := blkWrapper{}
+if _, err := Codec.Unmarshal(wrappedBytes, &amp;blkw); err != nil {
+    return nil, err
+}
+
+// now decode/unmarshal the actual block bytes to block
+blk := &amp;Block{}
+if _, err := Codec.Unmarshal(blkw.Blk, blk); err != nil {
+    return nil, err
+}
+
+// initialize block with block bytes, status and vm
+blk.Initialize(blkw.Blk, blkw.Status, s.vm)
+
+// put block into cache
+s.blkCache.Put(blkID, blk)
+
+return blk, nil
+</code></pre>
+<p>}</p>
+<p>// PutBlock puts block into both database and cache
+func (s *blockState) PutBlock(blk *Block) error {
+// create block wrapper with block bytes and status
+blkw := blkWrapper{
+Blk:    blk.Bytes(),
+Status: blk.Status(),
+}</p>
+<pre><code>// encode block wrapper to its byte representation
+wrappedBytes, err := Codec.Marshal(CodecVersion, &amp;blkw)
+if err != nil {
+    return err
+}
+
+blkID := blk.ID()
+// put actual block to cache, so we can directly fetch it from cache
+s.blkCache.Put(blkID, blk)
+
+// put wrapped block bytes into database
+return s.blockDB.Put(blkID[:], wrappedBytes)
+</code></pre>
+<p>}</p>
+<p>// DeleteBlock deletes block from both cache and database
+func (s *blockState) DeleteBlock(blkID ids.ID) error {
+s.blkCache.Put(blkID, nil)
+return s.blockDB.Delete(blkID[:])
+}</p>
+<p>// GetLastAccepted returns last accepted block ID
+func (s *blockState) GetLastAccepted() (ids.ID, error) {
+// check if we already have lastAccepted ID in state memory
+if s.lastAccepted != ids.Empty {
+return s.lastAccepted, nil
+}</p>
+<pre><code>// get lastAccepted bytes from database with the fixed lastAcceptedKey
+lastAcceptedBytes, err := s.blockDB.Get(lastAcceptedKey)
+if err != nil {
+    return ids.ID{}, err
+}
+// parse bytes to ID
+lastAccepted, err := ids.ToID(lastAcceptedBytes)
+if err != nil {
+    return ids.ID{}, err
+}
+// put lastAccepted ID into memory
+s.lastAccepted = lastAccepted
+return lastAccepted, nil
+</code></pre>
+<p>}</p>
+<p>// SetLastAccepted persists lastAccepted ID into both cache and database
+func (s *blockState) SetLastAccepted(lastAccepted ids.ID) error {
+// if the ID in memory and the given memory are same don't do anything
+if s.lastAccepted == lastAccepted {
+return nil
+}
+// put lastAccepted ID to memory
+s.lastAccepted = lastAccepted
+// persist lastAccepted ID to database with fixed lastAcceptedKey
+return s.blockDB.Put(lastAcceptedKey, lastAccepted[:])
+}</p>
+<p>Block 
+既然是区块链开发，区块的定义自然是少不了的，我们的时间戳区块链区块定义如下：
+【block.go】
+type Block struct {
+PrntID ids.ID        <code>serialize:&quot;true&quot; json:&quot;parentID&quot;</code>  // parent's ID
+Hght  uint64        <code>serialize:&quot;true&quot; json:&quot;height&quot;</code>    // This block's height. The genesis block is at height 0.
+Tmstmp int64         <code>serialize:&quot;true&quot; json:&quot;timestamp&quot;</code> // Time this block was proposed at
+Dt     [dataLen]byte <code>serialize:&quot;true&quot; json:&quot;data&quot;</code>      // Arbitrary data</p>
+<pre><code>id     ids.ID         // hold this block's ID
+bytes  []byte         // this block's encoded bytes
+status choices.Status // block's status
+vm     *VM            // the underlying VM reference, mostly used for state
+</code></pre>
+<p>}</p>
+<p>上面是Block结构体的具体数据字段，每个字段详细介绍省略。。。。
+其中有的字段后面有标签tag（serialize:”true”）,这个标签表示该字段的数据在持久化保存或者进行网络传输的时候需要进行序列化。
+下面是Block结构体的各个功能接口实现：
+Verify
+Verify()方法用于验证区块是否有效，如果有效，将其保存在内存中，验证内容只要是对父节点的验证，对本区块时间戳的验证。如果验证成功，表示该区块内容有效（即内容没有逻辑错误），将其保存在内存中，等待接受（或拒绝）到区块中。
+// Verify returns nil iff this block is valid.
+// To be valid, it must be that:
+// b.parent.Timestamp &lt; b.Timestamp &lt;= [local time] + 1 hour
+func (b *Block) Verify() error {
+// Get [b]'s parent
+parentID := b.Parent()
+parent, err := b.vm.getBlock(parentID)
+if err != nil {
+return errDatabaseGet
+}</p>
+<pre><code>// Ensure [b]'s height comes right after its parent's height
+if expectedHeight := parent.Height() + 1; expectedHeight != b.Hght {
+    return fmt.Errorf(
+        &quot;expected block to have height %d, but found %d&quot;,
+        expectedHeight,
+        b.Hght,
+    )
+}
+
+// Ensure [b]'s timestamp is after its parent's timestamp.
+if b.Timestamp().Unix() &lt; parent.Timestamp().Unix() {
+    return errTimestampTooEarly
+}
+
+// Ensure [b]'s timestamp is not more than an hour
+// ahead of this node's time
+if b.Timestamp().Unix() &gt;= time.Now().Add(time.Hour).Unix() {
+    return errTimestampTooLate
+}
+
+// Put that block to verified blocks in memory
+b.vm.verifiedBlocks[b.ID()] = b
+
+return nil
+</code></pre>
+<p>}</p>
+<p>Accept
+Accept()，当该区块被共识网络（引擎）接受后，本地共识引擎调用该方法：
+将该区块的Status设置为 choices.Accepted
+将vm的LastAccepted设置为该区块ID
+将此区块从vm.verifiedBlocks中删除，因为此区块已经被接受。
+将vm的state提交数据库，因为此操作已经更新了区块的state.
+// Accept sets this block's status to Accepted and sets lastAccepted to this
+// block's ID and saves this info to b.vm.DB
+func (b *Block) Accept() error {
+b.SetStatus(choices.Accepted) // Change state of this block
+blkID := b.ID()</p>
+<pre><code>// Persist data
+if err := b.vm.state.PutBlock(b); err != nil {
+    return err
+}
+
+// Set last accepted ID to this block ID
+if err := b.vm.state.SetLastAccepted(blkID); err != nil {
+    return err
+}
+
+// Delete this block from verified blocks as it's accepted
+delete(b.vm.verifiedBlocks, b.ID())
+
+// Commit changes to database
+return b.vm.state.Commit()
+</code></pre>
+<p>}</p>
+<p>Reject
+Reject(),与Accept()相反，如果此区块没有被共识接受，而是被拒绝接入区块链，则共识引擎（本地）会调用该方法：
+（1）将该区块的Status设置为 choices.Rejected
+（2）将此区块从vm.verifiedBlocks中删除，因为此区块已经被拒绝。
+（3）
+（4）
+cd ${HOME}/go/src/github.com/ava-labs/avalanche-network-runner
+go install -v ./cmd/avalanche-network-runner</p>
+<p>// Reject sets this block's status to Rejected and saves the status in state
+// Recall that b.vm.DB.Commit() must be called to persist to the DB
+func (b *Block) Reject() error {
+b.SetStatus(choices.Rejected) // Change state of this block
+if err := b.vm.state.PutBlock(b); err != nil {
+return err
+}
+// Delete this block from verified blocks as it's rejected
+delete(b.vm.verifiedBlocks, b.ID())
+// Commit changes to database
+return b.vm.state.Commit()
+}
+区块字段方法：snowman.Block interface 接口
+// ID returns the ID of this block
+func (b *Block) ID() ids.ID { return b.id }</p>
+<p>// ParentID returns [b]'s parent's ID
+func (b *Block) Parent() ids.ID { return b.PrntID }</p>
+<p>// Height returns this block's height. The genesis block has height 0.
+func (b *Block) Height() uint64 { return b.Hght }</p>
+<p>// Timestamp returns this block's time. The genesis block has time 0.
+func (b *Block) Timestamp() time.Time { return time.Unix(b.Tmstmp, 0) }</p>
+<p>// Status returns the status of this block
+func (b *Block) Status() choices.Status { return b.status }</p>
+<p>// Bytes returns the byte repr. of this block
+func (b *Block) Bytes() []byte { return b.bytes }</p>
+<p>辅助类方法 Helper Functions
+这些方法是为了方便使用区块，并不属于block interface.
+// Initialize sets [b.bytes] to [bytes], [b.id] to hash([b.bytes]),
+// [b.status] to [status] and [b.vm] to [vm]
+func (b *Block) Initialize(bytes []byte, status choices.Status, vm *VM) {
+b.bytes = bytes
+b.id = hashing.ComputeHash256Array(b.bytes)
+b.status = status
+b.vm = vm
+}</p>
+<p>// SetStatus sets the status of this block
+func (b *Block) SetStatus(status choices.Status) { b.status = status }</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="chapter3.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="chapter4.1.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="chapter3.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="chapter4.1.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </body>
+</html>

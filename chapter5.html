@@ -3,8 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Page not found</title>
-        <base href="/">
+        <title>第五章 专用EVM开发</title>
 
 
         <!-- Custom HTML head -->
@@ -81,7 +80,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li><li class="chapter-item expanded "><a href="chapter3.html"><strong aria-hidden="true">3.</strong> 第三章 VM与AvalancheGo的连接</a></li><li class="chapter-item expanded "><a href="chapter4.html"><strong aria-hidden="true">4.</strong> 第四章 Subnet by go</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter4.1.html"><strong aria-hidden="true">4.1.</strong> 时间戳服务器的实现Virtual Machine</a></li><li class="chapter-item expanded "><a href="chapter4.2.html"><strong aria-hidden="true">4.2.</strong> Static API</a></li><li class="chapter-item expanded "><a href="chapter4.3.html"><strong aria-hidden="true">4.3.</strong> API</a></li><li class="chapter-item expanded "><a href="chapter4.4.html"><strong aria-hidden="true">4.4.</strong> 封装运行</a></li></ol></li><li class="chapter-item expanded "><a href="chapter5.html"><strong aria-hidden="true">5.</strong> 第五章 专用EVM开发</a></li><li class="chapter-item expanded "><a href="chapter6.html"><strong aria-hidden="true">6.</strong> 第六章 本地网络模拟ANR</a></li><li class="chapter-item expanded "><a href="chapter7.html"><strong aria-hidden="true">7.</strong> 第七章 本地调试</a></li><li class="chapter-item expanded "><a href="chapter8.html"><strong aria-hidden="true">8.</strong> 第八章 生产环境部署</a></li><li class="chapter-item expanded "><a href="SubnetByRust.html"><strong aria-hidden="true">9.</strong> Subnet by rust</a></li><li class="chapter-item expanded "><a href="SubnetByGo.html"><strong aria-hidden="true">10.</strong> Subnet by go</a></li><li class="chapter-item expanded "><a href="Go-Plugin/hashicorpGoPlugin.html"><strong aria-hidden="true">11.</strong> Hashicop Go Plugin</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li><li class="chapter-item expanded "><a href="chapter3.html"><strong aria-hidden="true">3.</strong> 第三章 VM与AvalancheGo的连接</a></li><li class="chapter-item expanded "><a href="chapter4.html"><strong aria-hidden="true">4.</strong> 第四章 Subnet by go</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter4.1.html"><strong aria-hidden="true">4.1.</strong> 时间戳服务器的实现Virtual Machine</a></li><li class="chapter-item expanded "><a href="chapter4.2.html"><strong aria-hidden="true">4.2.</strong> Static API</a></li><li class="chapter-item expanded "><a href="chapter4.3.html"><strong aria-hidden="true">4.3.</strong> API</a></li><li class="chapter-item expanded "><a href="chapter4.4.html"><strong aria-hidden="true">4.4.</strong> 封装运行</a></li></ol></li><li class="chapter-item expanded "><a href="chapter5.html" class="active"><strong aria-hidden="true">5.</strong> 第五章 专用EVM开发</a></li><li class="chapter-item expanded "><a href="chapter6.html"><strong aria-hidden="true">6.</strong> 第六章 本地网络模拟ANR</a></li><li class="chapter-item expanded "><a href="chapter7.html"><strong aria-hidden="true">7.</strong> 第七章 本地调试</a></li><li class="chapter-item expanded "><a href="chapter8.html"><strong aria-hidden="true">8.</strong> 第八章 生产环境部署</a></li><li class="chapter-item expanded "><a href="SubnetByRust.html"><strong aria-hidden="true">9.</strong> Subnet by rust</a></li><li class="chapter-item expanded "><a href="SubnetByGo.html"><strong aria-hidden="true">10.</strong> Subnet by go</a></li><li class="chapter-item expanded "><a href="Go-Plugin/hashicorpGoPlugin.html"><strong aria-hidden="true">11.</strong> Hashicop Go Plugin</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -142,14 +141,73 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="document-not-found-404"><a class="header" href="#document-not-found-404">Document not found (404)</a></h1>
-<p>This URL is invalid, sorry. Please use the navigation bar or search to continue.</p>
+                        <h1 id="第五章-专用evm开发"><a class="header" href="#第五章-专用evm开发">第五章 专用EVM开发</a></h1>
+<p>上一章介绍完全从零开发的VM，此外，如果用于运行智能合约，EVM支持智能合约，但是以太坊公链上或者Avalanche-C 链上会有诸多限制。我们可以通过修改以太坊VM的部分参数，使之合适我们实际的运用场景。本章节将介绍自定义EVM的流程。</p>
+<h2 id="genesis"><a class="header" href="#genesis">Genesis</a></h2>
+<p>每个区块在创建的收都需要定义一些初始状态，基于EVM的子网区块链提供了一些默认的配置。列如：
+{
+&quot;config&quot;: {
+&quot;chainId&quot;: 43214,
+&quot;homesteadBlock&quot;: 0,
+&quot;eip150Block&quot;: 0,
+&quot;eip150Hash&quot;: &quot;0x2086799aeebeae135c246c65021c82b4e15a2c451340993aacfd2751886514f0&quot;,
+&quot;eip155Block&quot;: 0,
+&quot;eip158Block&quot;: 0,
+&quot;byzantiumBlock&quot;: 0,
+&quot;constantinopleBlock&quot;: 0,
+&quot;petersburgBlock&quot;: 0,
+&quot;istanbulBlock&quot;: 0,
+&quot;muirGlacierBlock&quot;: 0,
+&quot;subnetEVMTimestamp&quot;: 0,
+&quot;feeConfig&quot;: {
+&quot;gasLimit&quot;: 8000000,
+&quot;minBaseFee&quot;: 25000000000,
+&quot;targetGas&quot;: 15000000,
+&quot;baseFeeChangeDenominator&quot;: 36,
+&quot;minBlockGasCost&quot;: 0,
+&quot;maxBlockGasCost&quot;: 1000000,
+&quot;targetBlockRate&quot;: 2,
+&quot;blockGasCostStep&quot;: 200000
+},
+&quot;allowFeeRecipients&quot;: false
+},
+&quot;alloc&quot;: {
+&quot;8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC&quot;: {
+&quot;balance&quot;: &quot;0x295BE96E64066972000000&quot;
+}
+},
+&quot;nonce&quot;: &quot;0x0&quot;,
+&quot;timestamp&quot;: &quot;0x0&quot;,
+&quot;extraData&quot;: &quot;0x00&quot;,
+&quot;gasLimit&quot;: &quot;0x7A1200&quot;,
+&quot;difficulty&quot;: &quot;0x0&quot;,
+&quot;mixHash&quot;: &quot;0x0000000000000000000000000000000000000000000000000000000000000000&quot;,
+&quot;coinbase&quot;: &quot;0x0000000000000000000000000000000000000000&quot;,
+&quot;number&quot;: &quot;0x0&quot;,
+&quot;gasUsed&quot;: &quot;0x0&quot;,
+&quot;parentHash&quot;: &quot;0x0000000000000000000000000000000000000000000000000000000000000000&quot;
+}</p>
+<p>接下来对上面各个配置进行说明。</p>
+<h2 id="chaiid"><a class="header" href="#chaiid">ChaiID</a></h2>
+<p>子网链ID，用于表示区块链的ID，这里需要注意的是，给自己的区块链取ID的时候一定要小心，不能与其他区块链ID有冲突，否者会产生诸多问题。这里建议到chainlist.org上查看参考目前已经被占用的ID，然后保存自己的ID，并公布。
+Hardforks
+homesteadBlock, eip150Block, eip150Hash, eip155Block, byzantiumBlock, constantinopleBlock, petersburgBlock, istanbulBlock, muirGlacierBlock, subnetEVMTimestamp are hardfork activation times. Changing these may cause issues, so treat them carefully</p>
+<h2 id="fee-config"><a class="header" href="#fee-config">Fee Config</a></h2>
+<h2 id="precompiles"><a class="header" href="#precompiles">Precompiles</a></h2>
+<h2 id="network-upgrades-enabledisable-precompiles"><a class="header" href="#network-upgrades-enabledisable-precompiles">Network Upgrades: Enable/Disable Precompiles</a></h2>
+<h2 id="avalanchego-chain-configs"><a class="header" href="#avalanchego-chain-configs">AvalancheGo Chain Configs</a></h2>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="chapter4.4.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
 
+                            <a rel="next" href="chapter6.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -157,7 +215,13 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="chapter4.4.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
 
+                    <a rel="next" href="chapter6.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
             </nav>
 
         </div>

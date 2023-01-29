@@ -1,0 +1,306 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Subnet by go</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li><li class="chapter-item expanded "><a href="chapter3.html"><strong aria-hidden="true">3.</strong> 第三章 VM与AvalancheGo的连接</a></li><li class="chapter-item expanded "><a href="chapter4.html"><strong aria-hidden="true">4.</strong> 第四章 Subnet by go</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter4.1.html"><strong aria-hidden="true">4.1.</strong> 时间戳服务器的实现Virtual Machine</a></li><li class="chapter-item expanded "><a href="chapter4.2.html"><strong aria-hidden="true">4.2.</strong> Static API</a></li><li class="chapter-item expanded "><a href="chapter4.3.html"><strong aria-hidden="true">4.3.</strong> API</a></li><li class="chapter-item expanded "><a href="chapter4.4.html"><strong aria-hidden="true">4.4.</strong> 封装运行</a></li></ol></li><li class="chapter-item expanded "><a href="chapter5.html"><strong aria-hidden="true">5.</strong> 第五章 专用EVM开发</a></li><li class="chapter-item expanded "><a href="chapter6.html"><strong aria-hidden="true">6.</strong> 第六章 本地网络模拟ANR</a></li><li class="chapter-item expanded "><a href="chapter7.html"><strong aria-hidden="true">7.</strong> 第七章 本地调试</a></li><li class="chapter-item expanded "><a href="chapter8.html"><strong aria-hidden="true">8.</strong> 第八章 生产环境部署</a></li><li class="chapter-item expanded "><a href="SubnetByRust.html"><strong aria-hidden="true">9.</strong> Subnet by rust</a></li><li class="chapter-item expanded "><a href="SubnetByGo.html" class="active"><strong aria-hidden="true">10.</strong> Subnet by go</a></li><li class="chapter-item expanded "><a href="Go-Plugin/hashicorpGoPlugin.html"><strong aria-hidden="true">11.</strong> Hashicop Go Plugin</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title"></h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="timestamp-virtual-machine"><a class="header" href="#timestamp-virtual-machine">Timestamp Virtual Machine</a></h1>
+<p><a href="https://github.com/ava-labs/timestampvm/actions/workflows/lint_test_build.yml"><img src="https://github.com/ava-labs/timestampvm/actions/workflows/lint_test_build.yml/badge.svg" alt="Lint+Test+Build" /></a></p>
+<p>Avalanche is a network composed of multiple blockchains. Each blockchain is an instance of a <a href="https://docs.avax.network/learn/platform-overview#virtual-machines">Virtual Machine (VM)</a>, much like an object in an object-oriented language is an instance of a class. That is, the VM defines the behavior of the blockchain.</p>
+<p>TimestampVM defines a blockchain that is a timestamp server. Each block in the blockchain contains the timestamp when it was created along with a 32-byte piece of data (payload). Each block’s timestamp is after its parent’s timestamp. This VM demonstrates capabilities of custom VMs and custom blockchains. For more information, see: <a href="https://docs.avax.network/build/tutorials/platform/create-a-virtual-machine-vm">Create a Virtual Machine</a></p>
+<h2 id="running-the-vm"><a class="header" href="#running-the-vm">Running the VM</a></h2>
+<p><a href="scripts/run.sh"><code>scripts/run.sh</code></a> automatically installs [avalanchego], sets up a local network,
+and creates a <code>timestampvm</code> genesis file. To build and run E2E tests, you need to set the variable <code>E2E</code> before it: <code>E2E=true ./scripts/run.sh 1.7.11</code></p>
+<p><em>See <a href="tests/e2e"><code>tests/e2e</code></a> to see how it's set up and how its client requests are made.</em></p>
+<pre><code class="language-bash"># to startup a local cluster (good for development)
+cd ${HOME}/go/src/github.com/ava-labs/timestampvm
+./scripts/run.sh 1.9.3
+
+# to run full e2e tests and shut down cluster afterwards
+cd ${HOME}/go/src/github.com/ava-labs/timestampvm
+E2E=true ./scripts/run.sh 1.9.3
+
+# inspect cluster endpoints when ready
+cat /tmp/avalanchego-v1.9.3/output.yaml
+&lt;&lt;COMMENT
+endpoint: /ext/bc/2VCAhX6vE3UnXC6s1CBPE6jJ4c4cHWMfPgCptuWS59pQ9vbeLM
+logsDir: ...
+pid: 12811
+uris:
+- http://127.0.0.1:9650
+- http://127.0.0.1:9652
+- http://127.0.0.1:9654
+- http://127.0.0.1:9656
+- http://127.0.0.1:9658
+network-runner RPC server is running on PID 66810...
+
+use the following command to terminate:
+
+pkill -P 66810 &amp;&amp; kill -2 66810 &amp;&amp; pkill -9 -f tGas3T58KzdjLHhBDMnH2TvrddhqTji5iZAMZ3RXs2NLpSnhH
+
+# propose a block
+curl -X POST --data '{
+    &quot;jsonrpc&quot;: &quot;2.0&quot;,
+    &quot;method&quot;: &quot;timestampvm.proposeBlock&quot;,
+    &quot;params&quot;:{
+        &quot;data&quot;:&quot;0x01020304000000000000000000000000000000000000000000000000000000003f004e9c&quot;
+    },
+    &quot;id&quot;: 1
+}' -H 'content-type:application/json;' http://127.0.0.1:9652/ext/bc/2W3Gn3E3xKSeHQZP47iybpgH6pk3JRWbNQs9P2FrKvXcHSNteB
+&lt;&lt;COMMENT
+{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;result&quot;:{&quot;Success&quot;:true},&quot;id&quot;:1}
+COMMENT
+
+# view last accepted block
+curl -X POST --data '{
+    &quot;jsonrpc&quot;: &quot;2.0&quot;,
+    &quot;method&quot;: &quot;timestampvm.getBlock&quot;,
+    &quot;params&quot;:{},
+    &quot;id&quot;: 1
+}' -H 'content-type:application/json;' http://127.0.0.1:9652/ext/bc/2W3Gn3E3xKSeHQZP47iybpgH6pk3JRWbNQs9P2FrKvXcHSNteB
+&lt;&lt;COMMENT
+{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;result&quot;:{&quot;timestamp&quot;:&quot;1668475950&quot;,&quot;data&quot;:&quot;0x01020304000000000000000000000000000000000000000000000000000000003f004e9c&quot;,&quot;height&quot;:&quot;1&quot;,&quot;id&quot;:&quot;2RbyqtZcr8DWnxWjD2jLaPUsjd2cxMFbjz1kmJjR7gDpp3txvz&quot;,&quot;parentID&quot;:&quot;SdVstz8FpkYxsneD2XQDk2CK7d1EBe4YVqkhftgbvUiyFfeHJ&quot;},&quot;id&quot;:1}
+COMMENT
+
+# terminate cluster
+pkill -P 66810 &amp;&amp; kill -2 66810 &amp;&amp; pkill -9 -f tGas3T58KzdjLHhBDMnH2TvrddhqTji5iZAMZ3RXs2NLpSnhH
+</code></pre>
+<h2 id="load-testing-the-vm"><a class="header" href="#load-testing-the-vm">Load Testing the VM</a></h2>
+<p>Because <code>TimestampVM</code> is such a lightweight Virtual Machine, it is a great
+candidate for testing the raw performance of the <code>ProposerVM</code> wrapper in
+AvalancheGo.</p>
+<p>To kickoff a load test, all you need to do is run the following command:</p>
+<pre><code class="language-bash">./scripts/tests.load.sh 1.9.3
+</code></pre>
+<p>This will automatically:</p>
+<ul>
+<li>disable all rate limiting rules in AvalancheGo</li>
+<li>activate the ProposerVM immediately (usually activates after 5 minutes on
+a new Subnet)</li>
+<li>set the ProposerVM block timer to have 0 delay (generate blocks as
+fast as possible)</li>
+</ul>
+<p>When running, you'll see a set of logs printed out indicating the current
+number of blocks per second <strong>generated and finalized</strong> on a local network:</p>
+<pre><code>INFO[11-18|09:19:58] Stats                                    height=0 avg bps=0.000 last bps=0.000
+INFO[11-18|09:20:01] Stats                                    height=261 avg bps=86.795 last bps=87.000
+INFO[11-18|09:20:04] Stats                                    height=597 avg bps=99.372 last bps=112.000
+INFO[11-18|09:20:07] Stats                                    height=942 avg bps=104.566 last bps=115.000
+INFO[11-18|09:20:10] Stats                                    height=1291 avg bps=107.493 last bps=116.333
+INFO[11-18|09:20:13] Stats                                    height=1634 avg bps=108.854 last bps=114.333
+INFO[11-18|09:20:16] Stats                                    height=1976 avg bps=109.664 last bps=114.000
+INFO[11-18|09:20:19] Stats                                    height=2308 avg bps=109.804 last bps=110.667
+INFO[11-18|09:20:22] Stats                                    height=2636 avg bps=109.742 last bps=109.333
+INFO[11-18|09:20:25] Stats                                    height=2978 avg bps=110.213 last bps=114.000
+INFO[11-18|09:20:28] Stats                                    height=3318 avg bps=110.512 last bps=113.333
+INFO[11-18|09:20:31] Stats                                    height=3649 avg bps=110.489 last bps=110.333
+INFO[11-18|09:20:34] Stats                                    height=3987 avg bps=110.667 last bps=112.667
+INFO[11-18|09:20:37] Stats                                    height=4320 avg bps=110.691 last bps=111.000
+INFO[11-18|09:20:40] Stats                                    height=4653 avg bps=110.711 last bps=111.000
+INFO[11-18|09:20:43] Stats                                    height=4974 avg bps=110.453 last bps=107.000
+INFO[11-18|09:20:46] Stats                                    height=5304 avg bps=110.423 last bps=110.000
+INFO[11-18|09:20:49] Stats                                    height=5636 avg bps=110.434 last bps=110.667
+INFO[11-18|09:20:52] Stats                                    height=5950 avg bps=110.101 last bps=104.667
+INFO[11-18|09:20:55] Stats                                    height=6236 avg bps=109.317 last bps=95.333
+INFO[11-18|09:20:58] Stats                                    height=6552 avg bps=109.116 last bps=105.333
+INFO[11-18|09:21:01] Stats                                    height=6876 avg bps=109.061 last bps=108.000
+INFO[11-18|09:21:04] Stats                                    height=7210 avg bps=109.163 last bps=111.333
+INFO[11-18|09:21:07] Stats                                    height=7499 avg bps=108.574 last bps=96.333
+INFO[11-18|09:21:10] Stats                                    height=7787 avg bps=108.049 last bps=96.000
+INFO[11-18|09:21:13] Stats                                    height=8119 avg bps=108.152 last bps=110.667
+INFO[11-18|09:21:16] Stats                                    height=8449 avg bps=108.222 last bps=110.000
+INFO[11-18|09:21:19] Stats                                    height=8779 avg bps=108.279 last bps=110.000
+INFO[11-18|09:21:22] Stats                                    height=9107 avg bps=108.315 last bps=109.333
+INFO[11-18|09:21:25] Stats                                    height=9437 avg bps=108.372 last bps=110.000
+INFO[11-18|09:21:28] Stats                                    height=9757 avg bps=108.315 last bps=106.667
+INFO[11-18|09:21:31] Stats                                    height=10069 avg bps=108.175 last bps=104.000
+INFO[11-18|09:21:34] Stats                                    height=10401 avg bps=108.242 last bps=110.667
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="SubnetByRust.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="Go-Plugin/hashicorpGoPlugin.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="SubnetByRust.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="Go-Plugin/hashicorpGoPlugin.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </body>
+</html>

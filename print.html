@@ -81,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter_1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter_2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter_2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter_2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li><li class="chapter-item expanded "><a href="chapter_3.html"><strong aria-hidden="true">3.</strong> 第三章 Subnet by rust</a></li><li class="chapter-item expanded "><a href="chapter_4.html"><strong aria-hidden="true">4.</strong> 第四章 Subnet by go</a></li><li class="chapter-item expanded "><a href="Go-Plugin/hashicorpGoPlugin.html"><strong aria-hidden="true">5.</strong> Hashicop Go Plugin</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li><li class="chapter-item expanded "><a href="chapter3.html"><strong aria-hidden="true">3.</strong> 第三章 VM与AvalancheGo的连接</a></li><li class="chapter-item expanded "><a href="chapter4.html"><strong aria-hidden="true">4.</strong> 第四章 Subnet by go</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter4.1.html"><strong aria-hidden="true">4.1.</strong> 时间戳服务器的实现Virtual Machine</a></li><li class="chapter-item expanded "><a href="chapter4.2.html"><strong aria-hidden="true">4.2.</strong> Static API</a></li><li class="chapter-item expanded "><a href="chapter4.3.html"><strong aria-hidden="true">4.3.</strong> API</a></li><li class="chapter-item expanded "><a href="chapter4.4.html"><strong aria-hidden="true">4.4.</strong> 封装运行</a></li></ol></li><li class="chapter-item expanded "><a href="chapter5.html"><strong aria-hidden="true">5.</strong> 第五章 专用EVM开发</a></li><li class="chapter-item expanded "><a href="chapter6.html"><strong aria-hidden="true">6.</strong> 第六章 本地网络模拟ANR</a></li><li class="chapter-item expanded "><a href="chapter7.html"><strong aria-hidden="true">7.</strong> 第七章 本地调试</a></li><li class="chapter-item expanded "><a href="chapter8.html"><strong aria-hidden="true">8.</strong> 第八章 生产环境部署</a></li><li class="chapter-item expanded "><a href="SubnetByRust.html"><strong aria-hidden="true">9.</strong> Subnet by rust</a></li><li class="chapter-item expanded "><a href="SubnetByGo.html"><strong aria-hidden="true">10.</strong> Subnet by go</a></li><li class="chapter-item expanded "><a href="Go-Plugin/hashicorpGoPlugin.html"><strong aria-hidden="true">11.</strong> Hashicop Go Plugin</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -337,6 +337,1367 @@ leaves ids.Set
 kahnNodes map[ids.ID]kahnNode
 </code></pre>
 <p>}</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="第三章-vm与avalanchego的连接"><a class="header" href="#第三章-vm与avalanchego的连接">第三章 VM与AvalancheGo的连接</a></h1>
+<p>前面的章节介绍了Vm 和 Avalanche的工作结构，本章具体介绍他们是如何通信，并实现两个程序之间的互相调用功能模块的。</p>
+<h2 id="vm运行形式"><a class="header" href="#vm运行形式">VM运行形式</a></h2>
+<p>在工程实践层面，子网的VM和主网节点主程序AvalancheGo是两个程序，主网节点如果打算运行某个子网区块链的VM，只需要将打包好VM放到指定的路径（或者任何路径，但是需要向AvalancheGo指定子网路径），不需要重新编译AvalancheGo，子网即可以运行。即子网是以插件的形式与AvalancheGo协作的。
+具体技术上，AvalancheGo是通过gRPC与VM通讯的，利用HashiCorp的Go-Plugin结构实现。关于Go-Plugin更多细节请查阅相关质料。
+代码层面，官方提供rpcchainvm.Plugin（rpcchainvm.VMserver）结构将vm进一步封装。向AvalancheGO提供调用服务。在这里我们直接利用官方提供的实践框架，至于背后框架的详细内容不在本书讨论范围内，这里将重点放到VM的开发上。
+AvalancheGo端
+在主程序这边，通过Go-Plugin的rpcchainvm.VMClient和rpcchainvm.BlockClient两个结构体来代表Vm和block与主程序协作，作为主程序的一个部分。
+但是在Go-Plugin结构上看来，在主程序这边是client客户端，vm这边才是server端。</p>
+<p>注册：
+node节点启动，先到plugin路径下面将路径中的所有vm编译文件全部注册：
+// Create the chainManager and register the following VMs:
+// AVM, Simple Payments DAG, Simple Payments Chain, and Platform VM
+// Assumes n.DBManager, n.vdrs all initialized (non-nil)
+node.Node.initChainManager(avaxAssetID ids.ID)
+其中包括platformvm、avm、evm、secp256k1fx、nftfx、propertyfx每一类vm都有对于的Factory结构体。所有子网属于同一类，同样也有对应的rpcchainvm.Factory结构体。
+子网注册，向VMManager注册子网（包括其他类也是向VMManager注册），VMManager本质是一个维护VMid及其对应factory的字典。
+rpcchainvm.RegisterPlugins(n.Config.PluginDir, n.Config.VMManager)
+rpcchainvm此处注册所有的子网vm(for遍历所有的子网ID)后续根据此ID将生成RPC 客户端。</p>
+<h2 id="创建"><a class="header" href="#创建">创建</a></h2>
+<p>Chains.manager（Chains.Manager接口实现）
+Chains.manager.CreateChain(chain ChainParameters)
+P-chain比较特殊，会先在Node.initChains()中先创建，然后其他链（VM）才通过P链管理创建，但是都是通过Chains.manager实现。
+通过VMManager.GetFactory(vmID)得到Factory,然后通过Factory.New()创建vm（子网对应的Factory是rpcchainvm.Factory,通过rpcchainvm.Factory中的Plugins创建生成的是VMClient,主程序将VMClient视为和程序中其他的VM一样对待，具体和实际的子网VM程序的通信就由于Go-Plugin封装抽象，）
+创建VmClient之后，Chains.manager还要继续创建对应的链，根据Vm的类型（是vertex.DAGVM还是block.ChainVm）创建AvalancheChain或者SnowmanChain.
+创建子链的时候，需要对vm进一步封装成proposervm:
+vm = proposervm.New(vm, m.ApricotPhase4Time, m.ApricotPhase4MinPChainHeight),为什么需要通过proposervm呢？</p>
+<p>三、运行</p>
+<p>开发子网就是以这种方式整合进入节点的。这类vm特点是：用于向RPC server发起调用，通过使用go-plugin实现，所有调用子网功能（vm.XXX）都是调用此rpc客户端。</p>
+<p>子网的启动从Chains.Manager开始：</p>
+<p>buildChain(chainParams ChainParameters, sb Subnet)</p>
+<h2 id="snowman"><a class="header" href="#snowman">Snowman++</a></h2>
+<p>**这部分内容引用了 snowman++的官方说明文档。
+Snowman++是一个控制出块拥堵的机制，用于snowman vm的。所有的snowman VM都会遇到一个出块竞争问题，虽然最终都可以达成共识，但是如果不对出块竞争的问题进行优化，就会拖慢共识达成的时间，最终会导致链上确认时间。使用Snowman++只需要将目标VM封装成“proposerVM”在指定一个用于控制成块拥堵的激活时间既可。
+生成区块控制机制：snowman++引入了一个叫做“_soft proposer mechanism”的机制（软提议人机制），该机制试图从选择一个提议人，改提议人有发布块的权力，但是等到一定的时间过后还没有生成区块，则其他区块都可以生成区块。
+从最外层视角来看，Snowman++的工作流程如下：对于每一个区块，都随机筛选出一小部分验证者名单，作为下一个区块的“proposer”,每一个proposer都分配有一个提交时间窗口：在对应的提交时间窗口开始前提交的区块是无效的，但是在特权时段窗口结束后，依然可以提交区块，这个时候会与下一个proposer竞争，过了这些提交时间窗口后，所有的验证人都可以提交区块，这个时候，就退化回原生的snowman机制了。</p>
+<h3 id="snowman-block-extension"><a class="header" href="#snowman-block-extension">Snowman++ block extension</a></h3>
+<p>Snowman++ 机制没有影响原有的区块产生流程，它只是对区块头添加了写信息，这些信息用于控制区块的拥堵调节。
+一个标准的snowman++区块头包含以下字段：
+ParentID：父强化区块的ID（注意：这里不同于内部的区块ID）
+Timestamp：区块产生的本地时间
+PChainHeight：上一个已被共识的区块区块产生的时间对应的P链的区块高度。
+Certificate：区块生成者的TLS certificate,用于验证区块的数字签名。
+Signature：区块签名（由区块生成者签名）
+备选区块头包含字段：（备选区块是未签名的，因为他们是完全由其Oracle block生成的）
+ParentID：备选区块关联的Oracle block的ID。</p>
+<h3 id="snowman-proposer-选取机制"><a class="header" href="#snowman-proposer-选取机制">Snowman++ proposer 选取机制</a></h3>
+<p>对于给定的区块，Snowman++ 从子网validators中随机选取一部分proposers,下一个区块的提议者名单由每个节点独立计算并可重复生成，生成流程如下：
+1、在P链上的一个区块P中来获取活动的子网验证者
+2、Validators 由node ID表示
+3、通过XOR 区块高度‘H’和 子网 chainID 得到种子数‘S’，ChainID 的引入保证了不同的链将会得到不同的 seed 系列。
+4、Validators 通过权重和‘S’抽样得到（这个过程是一个伪随机过程，因为S）
+5、maxWindows 表示抽取的proposer数量，目前是6</p>
+<p>给每个被选为proposer的validators分配区块提交窗口，窗口duration是5seconds.如果超过maxWindows*WindowDuration后还没有区块提交，所有的验证都可以提交。</p>
+<h3 id="snowman-validations"><a class="header" href="#snowman-validations">Snowman++ validations</a></h3>
+<p>Snowman++验证流程如下：
+要验证一个 “proposervm.block” 区块C及其父区块P，区块P的内部区块（snowman.block）必须是区块C的内部区块的父区块。
+区块的“PChainHeight”要大于等于它的父区块的PChainHeight.
+区块的“PChainHeight”要小于等于当前的P链最新区块的高度</p>
+<p>总之，Snowman++的引入对原有的共识丝毫没有影响，只是在达成共识的过程中引入了额外的调节机制，原有的共识机制并非一定要依赖这个机制，只是在拥堵的时候共识会花费比较长的时间。这个机制像极了闹市区的交通协调员，在区块拥堵的时候只是为了降低拥堵时间。在不拥堵的时候，这个机制完全可以不启用。</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="第四章-创建虚拟机vm"><a class="header" href="#第四章-创建虚拟机vm">第四章 创建虚拟机VM</a></h1>
+<p>为了能与avalanche 共识引擎兼容协调，vm的实现需要遵循很多接口规定，功能接口的封装也需要符合协议要求。具体参考第二章 VM的工作原理。
+时间戳服务器TimestampVM案例
+根据前面的介绍，我们现在已经知道了VM需要实现的诸多接口，以及一些libraries。接下来我们着手实现一个 TimestampVM 区块链时间戳服务器。
+编码解码模块
+Codec 用于将block编码、反编码成[]byte. 这里TimestampVM需要用到默认的codec和管理模块。
+【codec.go】: 编码模块
+//timestampvm/codec.go
+const (CodecVersion = 0) // CodecVersion is the current default codec version
+var (  Codec codec.Manager) // Codecs do serialization and deserialization
+func init() {
+c := linearcodec.NewDefault()// Create default codec and manager
+Codec = codec.NewDefaultManager()
+// Register codec to manager with CodecVersion
+if err := Codec.RegisterCodec(CodecVersion, c); err != nil {
+panic(err)
+}
+}</p>
+<p>State
+State :接口定义了与数据库相关的事务，对数据库的操作细节进行封装。每一个VM都需要自己定义数据库的相关操作方法（根据实际业务）。同时，State还嵌入了BlockState接口，此接口定义了与区块相关的状态操作。
+【state.go】:
+var (
+// These are prefixes for db keys.
+// It's important to set different prefixes for each separate database objects.
+singletonStatePrefix = []byte(&quot;singleton&quot;)
+blockStatePrefix     = []byte(&quot;block&quot;)
+_ State = &amp;state{}
+)</p>
+<p>// State is a wrapper around avax.SingleTonState and BlockState
+// State also exposes a few methods needed for managing database commits and close.
+type State interface {
+// SingletonState is defined in avalanchego,
+// it is used to understand if db is initialized already.
+avax.SingletonState
+BlockState</p>
+<pre><code>Commit() error
+Close() error
+</code></pre>
+<p>}</p>
+<p>type state struct {
+avax.SingletonState
+BlockState</p>
+<pre><code>baseDB *versiondb.Database
+</code></pre>
+<p>}</p>
+<p>func NewState(db database.Database, vm *VM) State {
+// create a new baseDB
+baseDB := versiondb.New(db)</p>
+<pre><code>// create a prefixed &quot;blockDB&quot; from baseDB
+blockDB := prefixdb.New(blockStatePrefix, baseDB)
+// create a prefixed &quot;singletonDB&quot; from baseDB
+singletonDB := prefixdb.New(singletonStatePrefix, baseDB)
+
+// return state with created sub state components
+return &amp;state{
+    BlockState:     NewBlockState(blockDB, vm),
+    SingletonState: avax.NewSingletonState(singletonDB),
+    baseDB:         baseDB,
+}
+</code></pre>
+<p>}</p>
+<p>// Commit commits pending operations to baseDB
+func (s *state) Commit() error {
+return s.baseDB.Commit()
+}</p>
+<p>// Close closes the underlying base database
+func (s *state) Close() error {
+return s.baseDB.Close()
+}</p>
+<p>BlockStake
+此接口实现为VM提供了存取blocks的储存功能。
+【BlockState.go】:
+const ( lastAcceptedByte byte = iota)</p>
+<p>const (
+// maximum block capacity of the cache
+blockCacheSize = 8192
+)</p>
+<p>// persists lastAccepted block IDs with this key
+var lastAcceptedKey = []byte{lastAcceptedByte}</p>
+<p>var _ BlockState = &amp;blockState{}</p>
+<p>// BlockState defines methods to manage state with Blocks and LastAcceptedIDs.
+type BlockState interface {
+GetBlock(blkID ids.ID) (*Block, error)
+PutBlock(blk *Block) error</p>
+<pre><code>GetLastAccepted() (ids.ID, error)
+SetLastAccepted(ids.ID) error
+</code></pre>
+<p>}</p>
+<p>// blockState implements BlocksState interface with database and cache.
+type blockState struct {
+// cache to store blocks
+blkCache cache.Cacher
+// block database
+blockDB      database.Database
+lastAccepted ids.ID</p>
+<pre><code>// vm reference
+vm *VM
+</code></pre>
+<p>}</p>
+<p>// blkWrapper wraps the actual blk bytes and status to persist them together
+type blkWrapper struct {
+Blk    []byte         <code>serialize:&quot;true&quot;</code>
+Status choices.Status <code>serialize:&quot;true&quot;</code>
+}</p>
+<p>// NewBlockState returns BlockState with a new cache and given db
+func NewBlockState(db database.Database, vm *VM) BlockState {
+return &amp;blockState{
+blkCache: &amp;cache.LRU{Size: blockCacheSize},
+blockDB:  db,
+vm:       vm,
+}
+}</p>
+<p>// GetBlock gets Block from either cache or database
+func (s *blockState) GetBlock(blkID ids.ID) (*Block, error) {
+// Check if cache has this blkID
+if blkIntf, cached := s.blkCache.Get(blkID); cached {
+// there is a key but value is nil, so return an error
+if blkIntf == nil {
+return nil, database.ErrNotFound
+}
+// We found it return the block in cache
+return blkIntf.(*Block), nil
+}</p>
+<pre><code>// get block bytes from db with the blkID key
+wrappedBytes, err := s.blockDB.Get(blkID[:])
+if err != nil {
+    // we could not find it in the db, let's cache this blkID with nil value
+    // so next time we try to fetch the same key we can return error
+    // without hitting the database
+    if err == database.ErrNotFound {
+        s.blkCache.Put(blkID, nil)
+    }
+    // could not find the block, return error
+    return nil, err
+}
+
+// first decode/unmarshal the block wrapper so we can have status and block bytes
+blkw := blkWrapper{}
+if _, err := Codec.Unmarshal(wrappedBytes, &amp;blkw); err != nil {
+    return nil, err
+}
+
+// now decode/unmarshal the actual block bytes to block
+blk := &amp;Block{}
+if _, err := Codec.Unmarshal(blkw.Blk, blk); err != nil {
+    return nil, err
+}
+
+// initialize block with block bytes, status and vm
+blk.Initialize(blkw.Blk, blkw.Status, s.vm)
+
+// put block into cache
+s.blkCache.Put(blkID, blk)
+
+return blk, nil
+</code></pre>
+<p>}</p>
+<p>// PutBlock puts block into both database and cache
+func (s *blockState) PutBlock(blk *Block) error {
+// create block wrapper with block bytes and status
+blkw := blkWrapper{
+Blk:    blk.Bytes(),
+Status: blk.Status(),
+}</p>
+<pre><code>// encode block wrapper to its byte representation
+wrappedBytes, err := Codec.Marshal(CodecVersion, &amp;blkw)
+if err != nil {
+    return err
+}
+
+blkID := blk.ID()
+// put actual block to cache, so we can directly fetch it from cache
+s.blkCache.Put(blkID, blk)
+
+// put wrapped block bytes into database
+return s.blockDB.Put(blkID[:], wrappedBytes)
+</code></pre>
+<p>}</p>
+<p>// DeleteBlock deletes block from both cache and database
+func (s *blockState) DeleteBlock(blkID ids.ID) error {
+s.blkCache.Put(blkID, nil)
+return s.blockDB.Delete(blkID[:])
+}</p>
+<p>// GetLastAccepted returns last accepted block ID
+func (s *blockState) GetLastAccepted() (ids.ID, error) {
+// check if we already have lastAccepted ID in state memory
+if s.lastAccepted != ids.Empty {
+return s.lastAccepted, nil
+}</p>
+<pre><code>// get lastAccepted bytes from database with the fixed lastAcceptedKey
+lastAcceptedBytes, err := s.blockDB.Get(lastAcceptedKey)
+if err != nil {
+    return ids.ID{}, err
+}
+// parse bytes to ID
+lastAccepted, err := ids.ToID(lastAcceptedBytes)
+if err != nil {
+    return ids.ID{}, err
+}
+// put lastAccepted ID into memory
+s.lastAccepted = lastAccepted
+return lastAccepted, nil
+</code></pre>
+<p>}</p>
+<p>// SetLastAccepted persists lastAccepted ID into both cache and database
+func (s *blockState) SetLastAccepted(lastAccepted ids.ID) error {
+// if the ID in memory and the given memory are same don't do anything
+if s.lastAccepted == lastAccepted {
+return nil
+}
+// put lastAccepted ID to memory
+s.lastAccepted = lastAccepted
+// persist lastAccepted ID to database with fixed lastAcceptedKey
+return s.blockDB.Put(lastAcceptedKey, lastAccepted[:])
+}</p>
+<p>Block 
+既然是区块链开发，区块的定义自然是少不了的，我们的时间戳区块链区块定义如下：
+【block.go】
+type Block struct {
+PrntID ids.ID        <code>serialize:&quot;true&quot; json:&quot;parentID&quot;</code>  // parent's ID
+Hght  uint64        <code>serialize:&quot;true&quot; json:&quot;height&quot;</code>    // This block's height. The genesis block is at height 0.
+Tmstmp int64         <code>serialize:&quot;true&quot; json:&quot;timestamp&quot;</code> // Time this block was proposed at
+Dt     [dataLen]byte <code>serialize:&quot;true&quot; json:&quot;data&quot;</code>      // Arbitrary data</p>
+<pre><code>id     ids.ID         // hold this block's ID
+bytes  []byte         // this block's encoded bytes
+status choices.Status // block's status
+vm     *VM            // the underlying VM reference, mostly used for state
+</code></pre>
+<p>}</p>
+<p>上面是Block结构体的具体数据字段，每个字段详细介绍省略。。。。
+其中有的字段后面有标签tag（serialize:”true”）,这个标签表示该字段的数据在持久化保存或者进行网络传输的时候需要进行序列化。
+下面是Block结构体的各个功能接口实现：
+Verify
+Verify()方法用于验证区块是否有效，如果有效，将其保存在内存中，验证内容只要是对父节点的验证，对本区块时间戳的验证。如果验证成功，表示该区块内容有效（即内容没有逻辑错误），将其保存在内存中，等待接受（或拒绝）到区块中。
+// Verify returns nil iff this block is valid.
+// To be valid, it must be that:
+// b.parent.Timestamp &lt; b.Timestamp &lt;= [local time] + 1 hour
+func (b *Block) Verify() error {
+// Get [b]'s parent
+parentID := b.Parent()
+parent, err := b.vm.getBlock(parentID)
+if err != nil {
+return errDatabaseGet
+}</p>
+<pre><code>// Ensure [b]'s height comes right after its parent's height
+if expectedHeight := parent.Height() + 1; expectedHeight != b.Hght {
+    return fmt.Errorf(
+        &quot;expected block to have height %d, but found %d&quot;,
+        expectedHeight,
+        b.Hght,
+    )
+}
+
+// Ensure [b]'s timestamp is after its parent's timestamp.
+if b.Timestamp().Unix() &lt; parent.Timestamp().Unix() {
+    return errTimestampTooEarly
+}
+
+// Ensure [b]'s timestamp is not more than an hour
+// ahead of this node's time
+if b.Timestamp().Unix() &gt;= time.Now().Add(time.Hour).Unix() {
+    return errTimestampTooLate
+}
+
+// Put that block to verified blocks in memory
+b.vm.verifiedBlocks[b.ID()] = b
+
+return nil
+</code></pre>
+<p>}</p>
+<p>Accept
+Accept()，当该区块被共识网络（引擎）接受后，本地共识引擎调用该方法：
+将该区块的Status设置为 choices.Accepted
+将vm的LastAccepted设置为该区块ID
+将此区块从vm.verifiedBlocks中删除，因为此区块已经被接受。
+将vm的state提交数据库，因为此操作已经更新了区块的state.
+// Accept sets this block's status to Accepted and sets lastAccepted to this
+// block's ID and saves this info to b.vm.DB
+func (b *Block) Accept() error {
+b.SetStatus(choices.Accepted) // Change state of this block
+blkID := b.ID()</p>
+<pre><code>// Persist data
+if err := b.vm.state.PutBlock(b); err != nil {
+    return err
+}
+
+// Set last accepted ID to this block ID
+if err := b.vm.state.SetLastAccepted(blkID); err != nil {
+    return err
+}
+
+// Delete this block from verified blocks as it's accepted
+delete(b.vm.verifiedBlocks, b.ID())
+
+// Commit changes to database
+return b.vm.state.Commit()
+</code></pre>
+<p>}</p>
+<p>Reject
+Reject(),与Accept()相反，如果此区块没有被共识接受，而是被拒绝接入区块链，则共识引擎（本地）会调用该方法：
+（1）将该区块的Status设置为 choices.Rejected
+（2）将此区块从vm.verifiedBlocks中删除，因为此区块已经被拒绝。
+（3）
+（4）
+cd ${HOME}/go/src/github.com/ava-labs/avalanche-network-runner
+go install -v ./cmd/avalanche-network-runner</p>
+<p>// Reject sets this block's status to Rejected and saves the status in state
+// Recall that b.vm.DB.Commit() must be called to persist to the DB
+func (b *Block) Reject() error {
+b.SetStatus(choices.Rejected) // Change state of this block
+if err := b.vm.state.PutBlock(b); err != nil {
+return err
+}
+// Delete this block from verified blocks as it's rejected
+delete(b.vm.verifiedBlocks, b.ID())
+// Commit changes to database
+return b.vm.state.Commit()
+}
+区块字段方法：snowman.Block interface 接口
+// ID returns the ID of this block
+func (b *Block) ID() ids.ID { return b.id }</p>
+<p>// ParentID returns [b]'s parent's ID
+func (b *Block) Parent() ids.ID { return b.PrntID }</p>
+<p>// Height returns this block's height. The genesis block has height 0.
+func (b *Block) Height() uint64 { return b.Hght }</p>
+<p>// Timestamp returns this block's time. The genesis block has time 0.
+func (b *Block) Timestamp() time.Time { return time.Unix(b.Tmstmp, 0) }</p>
+<p>// Status returns the status of this block
+func (b *Block) Status() choices.Status { return b.status }</p>
+<p>// Bytes returns the byte repr. of this block
+func (b *Block) Bytes() []byte { return b.bytes }</p>
+<p>辅助类方法 Helper Functions
+这些方法是为了方便使用区块，并不属于block interface.
+// Initialize sets [b.bytes] to [bytes], [b.id] to hash([b.bytes]),
+// [b.status] to [status] and [b.vm] to [vm]
+func (b *Block) Initialize(bytes []byte, status choices.Status, vm *VM) {
+b.bytes = bytes
+b.id = hashing.ComputeHash256Array(b.bytes)
+b.status = status
+b.vm = vm
+}</p>
+<p>// SetStatus sets the status of this block
+func (b *Block) SetStatus(status choices.Status) { b.status = status }</p>
+<div style="break-before: page; page-break-before: always;"></div><h2 id="时间戳服务器的实现virtual-machine"><a class="header" href="#时间戳服务器的实现virtual-machine">时间戳服务器的实现Virtual Machine</a></h2>
+<p>下面我们开始实现时间戳服务区块链的的各项功能，也就是block.ChainVM接口的实现。
+VM结构体定义：
+type VM struct {
+ctx       *snow.Context
+dbManager manager.Manager
+state State
+preferred ids.ID
+toEngine chan&lt;- common.Message
+mempool [][dataLen]byte
+verifiedBlocks map[ids.ID]*Block
+}</p>
+<p>Initialize初始化
+Initialize(...)
+Virtual Machine
+时间戳服务器的实现
+type VM struct {
+ctx       *snow.Context
+dbManager manager.Manager
+state State
+preferred ids.ID
+toEngine chan&lt;- common.Message
+mempool [][dataLen]byte
+verifiedBlocks map[ids.ID]*Block
+}</p>
+<p>以下为该结构体所实现的方法
+Initialize 初始化
+Initialize(...) 
+初始化vm
+1.确定vm版本 version,并打印到log中
+2.根据dbManager初始化state
+3.确定、初始化创世数据，如果没有创世块，根据创世数据建立创世区块，并存入区块链中。
+4.确定最新接受的的区块，如果没有，将创世块视为最新区块。</p>
+<p>CreateHandlers()
+CreateStaticHandlers()
+HealthCheck()</p>
+<p>BuildBlock()
+创建区块，所创建的区块将是vm期望加入到共识中的区块。1.判断vm.mempool中的数据是否合法
+2.获取preferredBlock，并将其设置为下面将要创建的新区块的父区块
+3.创建区块，并将调用区块的.Verify() 如无异常，返回新生成的区块。</p>
+<p>initGenesis 建立创世区块
+initGenesis()是一个helper方法，用于初始化创世区块，然后将其放入state中。
+// Initializes Genesis if required
+func (vm *VM) initGenesis(genesisData []byte) error {
+stateInitialized, err := vm.state.IsInitialized()
+if err != nil {
+return err
+}</p>
+<pre><code>// if state is already initialized, skip init genesis.
+if stateInitialized {
+    return nil
+}
+
+if len(genesisData) &gt; dataLen {
+    return errBadGenesisBytes
+}
+
+// genesisData is a byte slice but each block contains an byte array
+// Take the first [dataLen] bytes from genesisData and put them in an array
+var genesisDataArr [dataLen]byte
+copy(genesisDataArr[:], genesisData)
+
+// Create the genesis block
+// Timestamp of genesis block is 0. It has no parent.
+genesisBlock, err := vm.NewBlock(ids.Empty, 0, genesisDataArr, time.Unix(0, 0))
+if err != nil {
+    log.Error(&quot;error while creating genesis block: %v&quot;, err)
+    return err
+}
+
+// Put genesis block to state
+if err := vm.state.PutBlock(genesisBlock); err != nil {
+    log.Error(&quot;error while saving genesis block: %v&quot;, err)
+    return err
+}
+
+// Accept the genesis block
+// Sets [vm.lastAccepted] and [vm.preferred]
+if err := genesisBlock.Accept(); err != nil {
+    return fmt.Errorf(&quot;error accepting genesis block: %w&quot;, err)
+}
+
+// Mark this vm's state as initialized, so we can skip initGenesis in further restarts
+if err := vm.state.SetInitialized(); err != nil {
+    return fmt.Errorf(&quot;error while setting db to initialized: %w&quot;, err)
+}
+
+// Flush VM's database to underlying db
+return vm.state.Commit()
+</code></pre>
+<p>}</p>
+<p>CreateHandlers 
+将Service中定义的handlers进行注册。
+// CreateHandlers returns a map where:
+// Keys: The path extension for this blockchain's API (empty in this case)
+// Values: The handler for the API
+// In this case, our blockchain has only one API, which we name timestamp,
+// and it has no path extension, so the API endpoint:
+// [Node IP]/ext/bc/[this blockchain's ID]
+// See API section in documentation for more information
+func (vm *VM) CreateHandlers() (map[string]*common.HTTPHandler, error) {
+server := rpc.NewServer()
+server.RegisterCodec(json.NewCodec(), &quot;application/json&quot;)
+server.RegisterCodec(json.NewCodec(), &quot;application/json;charset=UTF-8&quot;)
+// Name is &quot;timestampvm&quot;
+if err := server.RegisterService(&amp;Service{vm: vm}, Name); err != nil {
+return nil, err
+}
+return map[string]*common.HTTPHandler{
+&quot;&quot;: {
+Handler: server,
+},
+}, nil
+}</p>
+<p>CreateStaticHandlers
+注册定义在StaticService中的handlers。
+// CreateStaticHandlers returns a map where:
+// Keys: The path extension for this VM's static API
+// Values: The handler for that static API
+func (vm *VM) CreateStaticHandlers() (map[string]*common.HTTPHandler, error) {
+server := rpc.NewServer()
+server.RegisterCodec(json.NewCodec(), &quot;application/json&quot;)
+server.RegisterCodec(json.NewCodec(), &quot;application/json;charset=UTF-8&quot;)
+if err := server.RegisterService(&amp;StaticService{}, Name); err != nil {
+return nil, err
+}
+return map[string]*common.HTTPHandler{
+&quot;&quot;: {
+LockOptions: common.NoLock,
+Handler:     server,
+},
+}, nil
+}
+BuildBlock()
+用于创建新的区块并返回新区块。主要由共识引擎调用。
+// BuildBlock returns a block that this vm wants to add to consensus
+func (vm *VM) BuildBlock() (snowman.Block, error) {
+if len(vm.mempool) == 0 { // There is no block to be built
+return nil, errNoPendingBlocks
+}</p>
+<pre><code>// Get the value to put in the new block
+value := vm.mempool[0]
+vm.mempool = vm.mempool[1:]
+
+// Notify consensus engine that there are more pending data for blocks
+// (if that is the case) when done building this block
+if len(vm.mempool) &gt; 0 {
+    defer vm.NotifyBlockReady()
+}
+
+// Gets Preferred Block
+preferredBlock, err := vm.getBlock(vm.preferred)
+if err != nil {
+    return nil, fmt.Errorf(&quot;couldn't get preferred block: %w&quot;, err)
+}
+preferredHeight := preferredBlock.Height()
+
+// Build the block with preferred height
+newBlock, err := vm.NewBlock(vm.preferred, preferredHeight+1, value, time.Now())
+if err != nil {
+    return nil, fmt.Errorf(&quot;couldn't build block: %w&quot;, err)
+}
+
+// Verifies block
+if err := newBlock.Verify(); err != nil {
+    return nil, err
+}
+return newBlock, nil
+</code></pre>
+<p>}
+NotifyBlockReady
+属于帮助方法，用于向共识引擎发送信息（通过toEngine channel）
+// NotifyBlockReady tells the consensus engine that a new block
+// is ready to be created
+func (vm *VM) NotifyBlockReady() {
+select {
+case vm.toEngine &lt;- common.PendingTxs:
+default:
+vm.ctx.Log.Debug(&quot;dropping message to consensus engine&quot;)
+}
+}</p>
+<p>GetBlock
+通过blockID获取区块，
+// GetBlock implements the snowman.ChainVM interface
+func (vm *VM) GetBlock(blkID ids.ID) (snowman.Block, error) { return vm.getBlock(blkID) }</p>
+<p>func (vm *VM) getBlock(blkID ids.ID) (*Block, error) {
+// If block is in memory, return it.
+if blk, exists := vm.verifiedBlocks[blkID]; exists {
+return blk, nil
+}
+return vm.state.GetBlock(blkID)
+}</p>
+<p>proposeBlock
+proposeBlock会向mempool添加数据（交易），然后通知区块链共识层表示有一个新的区块内容已准备好，该方法一般会被API方法ProposeBlock调用。
+// proposeBlock appends [data] to [p.mempool].
+// Then it notifies the consensus engine
+// that a new block is ready to be added to consensus
+// (namely, a block with data [data])
+func (vm *VM) proposeBlock(data [dataLen]byte) {
+vm.mempool = append(vm.mempool, data)
+vm.NotifyBlockReady()
+}</p>
+<p>ParseBlock
+将[bytes]数据解析、还原成区块。
+// ParseBlock parses [bytes] to a snowman.Block
+// This function is used by the vm's state to unmarshal blocks saved in state
+// and by the consensus layer when it receives the byte representation of a block
+// from another node
+func (vm *VM) ParseBlock(bytes []byte) (snowman.Block, error) {
+// A new empty block
+block := &amp;Block{}</p>
+<pre><code>// Unmarshal the byte repr. of the block into our empty block
+_, err := Codec.Unmarshal(bytes, block)
+if err != nil {
+    return nil, err
+}
+
+// Initialize the block
+block.Initialize(bytes, choices.Processing, vm)
+
+if blk, err := vm.getBlock(block.ID()); err == nil {
+    // If we have seen this block before, return it with the most up-to-date
+    // info
+    return blk, nil
+}
+
+// Return the block
+return block, nil
+</code></pre>
+<p>}</p>
+<p>NewBlock
+根据送给的参数、数据创建一个新的区块。
+// NewBlock returns a new Block where:
+// - the block's parent is [parentID]
+// - the block's data is [data]
+// - the block's timestamp is [timestamp]
+func (vm *VM) NewBlock(parentID ids.ID, height uint64, data [dataLen]byte, timestamp time.Time) (*Block, error) {
+block := &amp;Block{
+PrntID: parentID,
+Hght:   height,
+Tmstmp: timestamp.Unix(),
+Dt:     data,
+}</p>
+<pre><code>// Get the byte representation of the block
+blockBytes, err := Codec.Marshal(CodecVersion, block)
+if err != nil {
+    return nil, err
+}
+
+// Initialize the block by providing it with its byte representation
+// and a reference to this VM
+block.Initialize(blockBytes, choices.Processing, vm)
+return block, nil
+</code></pre>
+<p>}</p>
+<p>SetPreference
+实现block.ChainVM,用于设置Preferred区块（ID）
+// SetPreference sets the block with ID [ID] as the preferred block
+func (vm *VM) SetPreference(id ids.ID) error {
+vm.preferred = id
+return nil
+}</p>
+<p>其它
+还有一部分功能接口在这个案例中没用到，但是也需要简单返回ni来实现完整的block.ChainVM接口。
+// Bootstrapped marks this VM as bootstrapped
+func (vm *VM) Bootstrapped() error { return nil }</p>
+<p>// Bootstrapping marks this VM as bootstrapping
+func (vm *VM) Bootstrapping() error { return nil }</p>
+<p>// Returns this VM's version
+func (vm *VM) Version() (string, error) {
+return Version.String(), nil
+}</p>
+<p>func (vm *VM) Connected(id ids.ShortID, nodeVersion version.Application) error {
+return nil // noop
+}</p>
+<p>func (vm *VM) Disconnected(id ids.ShortID) error {
+return nil // noop
+}</p>
+<p>// This VM doesn't (currently) have any app-specific messages
+func (vm *VM) AppGossip(nodeID ids.ShortID, msg []byte) error {
+return nil
+}</p>
+<p>// This VM doesn't (currently) have any app-specific messages
+func (vm *VM) AppRequest(nodeID ids.ShortID, requestID uint32, time time.Time, request []byte) error {
+return nil
+}</p>
+<p>// This VM doesn't (currently) have any app-specific messages
+func (vm *VM) AppResponse(nodeID ids.ShortID, requestID uint32, response []byte) error {
+return nil
+}</p>
+<p>// This VM doesn't (currently) have any app-specific messages
+func (vm *VM) AppRequestFailed(nodeID ids.ShortID, requestID uint32) error {
+return nil
+}</p>
+<p>// Health implements the common.VM interface
+func (vm *VM) HealthCheck() (interface{}, error) { return nil, nil }</p>
+<p>Factory
+工厂函数实现了工厂接口，用于返回一个VM实例。
+var _ vms.Factory = &amp;Factory{}</p>
+<p>// Factory ...
+type Factory struct{}</p>
+<p>// New ...
+func (f *Factory) New(*snow.Context) (interface{}, error) { return &amp;VM{}, nil }</p>
+<div style="break-before: page; page-break-before: always;"></div><h2 id="static-api"><a class="header" href="#static-api">Static API</a></h2>
+<p>静态API，即是可以被调用的一些方法（功能），但是这些功能方法不会去查询区块链相关的内容、也不会去修改区块链的数据，总之不与区块链相关，而是把VM 当作一个完整程序，类似其他计算机程序。AvalancheGo通过Gorilla’s RPC library来实现http APIs。每一个API方法都需要定义一个参数结构体，一个返回值结构体，具体如下。
+先定义一个StaticService结构。
+static_service.go
+// StaticService defines the static API for the timestamp vm
+type StaticService struct{}</p>
+<p>Encode
+Encode 方法用于将一个字符串按照特定编码方案（Avalanche）进行编码 </p>
+<p>// EncodeArgs are arguments for Encode
+type EncodeArgs struct {
+Data     string              <code>json:&quot;data&quot;</code>
+Encoding formatting.Encoding <code>json:&quot;encoding&quot;</code>
+Length   int32               <code>json:&quot;length&quot;</code>
+}</p>
+<p>// EncodeReply is the reply from Encoder
+type EncodeReply struct {
+Bytes    string              <code>json:&quot;bytes&quot;</code>
+Encoding formatting.Encoding <code>json:&quot;encoding&quot;</code>
+}</p>
+<p>// Encoder returns the encoded data
+func (ss *StaticService) Encode(_ *http.Request, args *EncodeArgs, reply *EncodeReply) error {
+if len(args.Data) == 0 {
+return fmt.Errorf(&quot;argument Data cannot be empty&quot;)
+}
+var argBytes []byte
+if args.Length &gt; 0 {
+argBytes = make([]byte, args.Length)
+copy(argBytes, args.Data)
+} else {
+argBytes = []byte(args.Data)
+}</p>
+<pre><code>bytes, err := formatting.EncodeWithChecksum(args.Encoding, argBytes)
+if err != nil {
+    return fmt.Errorf(&quot;couldn't encode data as string: %s&quot;, err)
+}
+reply.Bytes = bytes
+reply.Encoding = args.Encoding
+return nil
+</code></pre>
+<p>}</p>
+<p>Decode
+此API用于解码（与Encode相反）
+/timestampvm/static_service.go
+// DecoderArgs are arguments for Decode
+type DecoderArgs struct {
+Bytes    string              <code>json:&quot;bytes&quot;</code>
+Encoding formatting.Encoding <code>json:&quot;encoding&quot;</code>
+}</p>
+<p>// DecoderReply is the reply from Decoder
+type DecoderReply struct {
+Data     string              <code>json:&quot;data&quot;</code>
+Encoding formatting.Encoding <code>json:&quot;encoding&quot;</code>
+}</p>
+<p>// Decoder returns the Decoded data
+func (ss *StaticService) Decode(_ *http.Request, args *DecoderArgs, reply *DecoderReply) error {
+bytes, err := formatting.Decode(args.Encoding, args.Bytes)
+if err != nil {
+return fmt.Errorf(&quot;couldn't Decode data as string: %s&quot;, err)
+}
+reply.Data = string(bytes)
+reply.Encoding = args.Encoding
+return nil
+}</p>
+<div style="break-before: page; page-break-before: always;"></div><h2 id="api"><a class="header" href="#api">API</a></h2>
+<p>非静态API,即可以对链上数据进行查询和修改的API（修改指的是提交区块链交易信息），代码如下。不同于StaticService,Service有一个引用VM的字段，因为这里面的API需要与链上数据进行交互。
+/timestampvm/service.go
+// Service is the API service for this VM
+type Service struct{ vm *VM }</p>
+<p>这里面主要有两个API方法，一个是可以通过ID获取block。另外一个是可以向区块链推送下一个区块。</p>
+<p>timestampvm.getBlock
+调用案例timestampvm.getBlock：
+timestampvm.getBlock({id: string}) -&gt;
+{
+id: string,
+data: string,
+timestamp: int,
+parentID: string
+}</p>
+<p>返回数据解析：查询的区块id，区块数据（base58编码）在timestamp区块链中，我们定义的数据是一个只有32byte的载荷数据，timestamp时间戳，parenteID 所查询的区块的父区块的ID。
+调用方法及返回结果：
+curl -X POST --data '{
+&quot;jsonrpc&quot;: &quot;2.0&quot;,
+&quot;method&quot;: &quot;timestampvm.getBlock&quot;,
+&quot;params&quot;:{
+&quot;id&quot;:&quot;xqQV1jDnCXDxhfnNT7tDBcXeoH2jC3Hh7Pyv4GXE1z1hfup5K&quot;
+},
+&quot;id&quot;: 1
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/sw813hGSWH8pdU9uzaYy9fCtYFfY7AjDd2c9rm64SbApnvjmk
+{
+&quot;jsonrpc&quot;: &quot;2.0&quot;,
+&quot;result&quot;: {
+&quot;timestamp&quot;: &quot;1581717416&quot;,
+&quot;data&quot;: &quot;11111111111111111111111111111111LpoYY&quot;,
+&quot;id&quot;: &quot;xqQV1jDnCXDxhfnNT7tDBcXeoH2jC3Hh7Pyv4GXE1z1hfup5K&quot;,
+&quot;parentID&quot;: &quot;22XLgiM5dfCwTY9iZnVk8ZPuPe3aSrdVr5Dfrbxd3ejpJd7oef&quot;
+},
+&quot;id&quot;: 1
+}</p>
+<p>具体实现：
+/timestampvm/service.go
+// GetBlockArgs are the arguments to GetBlock
+type GetBlockArgs struct {
+// ID of the block we're getting.
+// If left blank, gets the latest block
+ID *ids.ID <code>json:&quot;id&quot;</code>
+}</p>
+<p>// GetBlockReply is the reply from GetBlock
+type GetBlockReply struct {
+Timestamp json.Uint64 <code>json:&quot;timestamp&quot;</code> // Timestamp of most recent block
+Data      string      <code>json:&quot;data&quot;</code>      // Data in the most recent block. Base 58 repr. of 5 bytes.
+ID        ids.ID      <code>json:&quot;id&quot;</code>        // String repr. of ID of the most recent block
+ParentID  ids.ID      <code>json:&quot;parentID&quot;</code>  // String repr. of ID of the most recent block's parent
+}</p>
+<p>// GetBlock gets the block whose ID is [args.ID]
+// If [args.ID] is empty, get the latest block
+func (s *Service) GetBlock(_ *http.Request, args *GetBlockArgs, reply *GetBlockReply) error {
+// If an ID is given, parse its string representation to an ids.ID
+// If no ID is given, ID becomes the ID of last accepted block
+var (
+id  ids.ID
+err error
+)</p>
+<pre><code>if args.ID == nil {
+    id, err = s.vm.state.GetLastAccepted()
+    if err != nil {
+        return errCannotGetLastAccepted
+    }
+} else {
+    id = *args.ID
+}
+
+// Get the block from the database
+block, err := s.vm.getBlock(id)
+if err != nil {
+    return errNoSuchBlock
+}
+
+// Fill out the response with the block's data
+reply.ID = block.ID()
+reply.Timestamp = json.Uint64(block.Timestamp().Unix())
+reply.ParentID = block.Parent()
+data := block.Data()
+reply.Data, err = formatting.EncodeWithChecksum(formatting.CB58, data[:])
+return err
+</code></pre>
+<p>}</p>
+<p>timestampvm.proposeBlock
+此API用于向区块链提交内容，即下一个区块的内容。
+方法Signature：
+timestampvm.proposeBlock({data: string}) -&gt; {success: bool}</p>
+<p>参数说明：上传32位的需要记录在区块链上数据，返回bool值。</p>
+<p>调用方式及返回内容：
+curl -X POST --data '{
+&quot;jsonrpc&quot;: &quot;2.0&quot;,
+&quot;method&quot;: &quot;timestampvm.proposeBlock&quot;,
+&quot;params&quot;:{
+&quot;data&quot;:&quot;SkB92YpWm4Q2iPnLGCuDPZPgUQMxajqQQuz91oi3xD984f8r&quot;
+},
+&quot;id&quot;: 1
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/sw813hGSWH8pdU9uzaYy9fCtYFfY7AjDd2c9rm64SbApnvjmk
+{
+&quot;jsonrpc&quot;: &quot;2.0&quot;,
+&quot;result&quot;: {
+&quot;Success&quot;: true
+},
+&quot;id&quot;: 1
+}</p>
+<p>具体实现：
+// ProposeBlockArgs are the arguments to ProposeValue
+type ProposeBlockArgs struct {
+// Data for the new block. Must be base 58 encoding (with checksum) of 32 bytes.
+Data string
+}</p>
+<p>// ProposeBlockReply is the reply from function ProposeBlock
+type ProposeBlockReply struct{
+// True if the operation was successful
+Success bool
+}</p>
+<p>// ProposeBlock is an API method to propose a new block whose data is [args].Data.
+// [args].Data must be a string repr. of a 32 byte array
+func (s *Service) ProposeBlock(_ *http.Request, args *ProposeBlockArgs, reply *ProposeBlockReply) error {
+bytes, err := formatting.Decode(formatting.CB58, args.Data)
+if err != nil || len(bytes) != dataLen {
+return errBadData
+}</p>
+<pre><code>var data [dataLen]byte         // The data as an array of bytes
+copy(data[:], bytes[:dataLen]) // Copy the bytes in dataSlice to data
+
+s.vm.proposeBlock(data)
+reply.Success = true
+return nil
+</code></pre>
+<p>}</p>
+<div style="break-before: page; page-break-before: always;"></div><h2 id="封装运行"><a class="header" href="#封装运行">封装运行</a></h2>
+<h3 id="封装插件plugin"><a class="header" href="#封装插件plugin">封装插件plugin</a></h3>
+<p>原理部分的内容介绍过，VM和AvalancheGo是通过go-plugin来链接的。所以我们的VM需要封装成为一个go-plugin插件包。然后AvalancheGo就可以通过其内部的rpcchainvm来调用vm的各个函数了。
+这里只需要简单封装在一个main package中的main()函数即可。</p>
+<p>func main() {
+log.Root().SetHandler(log.LvlFilterHandler(log.LvlDebug, log.StreamHandler(os.Stderr, log.TerminalFormat())))
+plugin.Serve(&amp;plugin.ServeConfig{
+HandshakeConfig: rpcchainvm.Handshake,
+Plugins: map[string]plugin.Plugin{
+&quot;vm&quot;: rpcchainvm.New(&amp;timestampvm.VM{}),
+},</p>
+<pre><code>    // A non-nil value here enables gRPC serving for this plugin...
+    GRPCServer: plugin.DefaultGRPCServer,
+})
+</code></pre>
+<p>}</p>
+<h3 id="编译成可执行二进制文件"><a class="header" href="#编译成可执行二进制文件">编译成可执行二进制文件</a></h3>
+<p>接下来我们需要将程序代码编译成可以执行二进制文件，这里利用AvalancheGo 官方开源的一个工具脚本就可以完成：
+./scripts/build.sh    ../avalanchego/build/plugins    timestampvm</p>
+<p>完成后，可执行文件将存放在~/avalanchego/build/plugins 下面.</p>
+<h3 id="vm别名"><a class="header" href="#vm别名">VM别名</a></h3>
+<p>VM的ID是一个32 byte的CB58编码字符串。比如TimestampVM对应的ID是：[tGas3T58KzdjLHhBDMnH2TvrddhqTji5iZAMZ3RXs2NLpSnhH]。
+为了方便使用，我们一般可以针对该ID设置多个别名，在调用的时候，就可以使别名来代替这一串难记的字符串ID[tGas3T58KzdjLHhBDMnH2TvrddhqTji5iZAMZ3RXs2NLpSnhH]。以TimestampVM为例，通过在~/.avalanchego/configs/vms/aliases.json文件中添加以下内容进行别名注册即可：
+{
+&quot;tGas3T58KzdjLHhBDMnH2TvrddhqTji5iZAMZ3RXs2NLpSnhH&quot;: [
+&quot;timestampvm&quot;,
+&quot;timestamp&quot;
+]
+}</p>
+<h3 id="vm安装"><a class="header" href="#vm安装">VM安装</a></h3>
+<p>AvalancheGO在启动的时候会先对plugins目录进行扫描有没有可以用的VM。所以安装VM我们只需要把前面编译好的VM的二进制可执行放到这个对应的路径即可，需要注意的是可执行二进制文件名必须是VM的ID或者其已经注册的别名。</p>
+<p>如果节点还没有运行，将所有的可执行二进制的VM文件放到plugin路径下，启动节点即完成按照，</p>
+<p>如果节点正在运行，我们中途添加子网VM就需要调用loadVMs API：
+curl -sX POST --data '{
+&quot;jsonrpc&quot;:&quot;2.0&quot;,
+&quot;id&quot;     :1,
+&quot;method&quot; :&quot;admin.loadVMs&quot;,
+&quot;params&quot; :{}
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/admin</p>
+<p>然后检查返回的数据是否包含要按照的VM的ID：
+{
+&quot;jsonrpc&quot;: &quot;2.0&quot;,
+&quot;result&quot;: {
+&quot;newVMs&quot;: {
+&quot;tGas3T58KzdjLHhBDMnH2TvrddhqTji5iZAMZ3RXs2NLpSnhH&quot;: [
+&quot;timestampvm&quot;,
+&quot;timestamp&quot;
+],
+&quot;spdxUxVJQbX85MGxMHbKw1sHxMnSqJ3QBzDyDYEP3h6TLuxqQ&quot;: []
+}
+},
+&quot;id&quot;: 1
+}</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="第五章-专用evm开发"><a class="header" href="#第五章-专用evm开发">第五章 专用EVM开发</a></h1>
+<p>上一章介绍完全从零开发的VM，此外，如果用于运行智能合约，EVM支持智能合约，但是以太坊公链上或者Avalanche-C 链上会有诸多限制。我们可以通过修改以太坊VM的部分参数，使之合适我们实际的运用场景。本章节将介绍自定义EVM的流程。</p>
+<h2 id="genesis"><a class="header" href="#genesis">Genesis</a></h2>
+<p>每个区块在创建的收都需要定义一些初始状态，基于EVM的子网区块链提供了一些默认的配置。列如：
+{
+&quot;config&quot;: {
+&quot;chainId&quot;: 43214,
+&quot;homesteadBlock&quot;: 0,
+&quot;eip150Block&quot;: 0,
+&quot;eip150Hash&quot;: &quot;0x2086799aeebeae135c246c65021c82b4e15a2c451340993aacfd2751886514f0&quot;,
+&quot;eip155Block&quot;: 0,
+&quot;eip158Block&quot;: 0,
+&quot;byzantiumBlock&quot;: 0,
+&quot;constantinopleBlock&quot;: 0,
+&quot;petersburgBlock&quot;: 0,
+&quot;istanbulBlock&quot;: 0,
+&quot;muirGlacierBlock&quot;: 0,
+&quot;subnetEVMTimestamp&quot;: 0,
+&quot;feeConfig&quot;: {
+&quot;gasLimit&quot;: 8000000,
+&quot;minBaseFee&quot;: 25000000000,
+&quot;targetGas&quot;: 15000000,
+&quot;baseFeeChangeDenominator&quot;: 36,
+&quot;minBlockGasCost&quot;: 0,
+&quot;maxBlockGasCost&quot;: 1000000,
+&quot;targetBlockRate&quot;: 2,
+&quot;blockGasCostStep&quot;: 200000
+},
+&quot;allowFeeRecipients&quot;: false
+},
+&quot;alloc&quot;: {
+&quot;8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC&quot;: {
+&quot;balance&quot;: &quot;0x295BE96E64066972000000&quot;
+}
+},
+&quot;nonce&quot;: &quot;0x0&quot;,
+&quot;timestamp&quot;: &quot;0x0&quot;,
+&quot;extraData&quot;: &quot;0x00&quot;,
+&quot;gasLimit&quot;: &quot;0x7A1200&quot;,
+&quot;difficulty&quot;: &quot;0x0&quot;,
+&quot;mixHash&quot;: &quot;0x0000000000000000000000000000000000000000000000000000000000000000&quot;,
+&quot;coinbase&quot;: &quot;0x0000000000000000000000000000000000000000&quot;,
+&quot;number&quot;: &quot;0x0&quot;,
+&quot;gasUsed&quot;: &quot;0x0&quot;,
+&quot;parentHash&quot;: &quot;0x0000000000000000000000000000000000000000000000000000000000000000&quot;
+}</p>
+<p>接下来对上面各个配置进行说明。</p>
+<h2 id="chaiid"><a class="header" href="#chaiid">ChaiID</a></h2>
+<p>子网链ID，用于表示区块链的ID，这里需要注意的是，给自己的区块链取ID的时候一定要小心，不能与其他区块链ID有冲突，否者会产生诸多问题。这里建议到chainlist.org上查看参考目前已经被占用的ID，然后保存自己的ID，并公布。
+Hardforks
+homesteadBlock, eip150Block, eip150Hash, eip155Block, byzantiumBlock, constantinopleBlock, petersburgBlock, istanbulBlock, muirGlacierBlock, subnetEVMTimestamp are hardfork activation times. Changing these may cause issues, so treat them carefully</p>
+<h2 id="fee-config"><a class="header" href="#fee-config">Fee Config</a></h2>
+<h2 id="precompiles"><a class="header" href="#precompiles">Precompiles</a></h2>
+<h2 id="network-upgrades-enabledisable-precompiles"><a class="header" href="#network-upgrades-enabledisable-precompiles">Network Upgrades: Enable/Disable Precompiles</a></h2>
+<h2 id="avalanchego-chain-configs"><a class="header" href="#avalanchego-chain-configs">AvalancheGo Chain Configs</a></h2>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="第六章-本地网络模拟anr"><a class="header" href="#第六章-本地网络模拟anr">第六章 本地网络模拟ANR</a></h1>
+<p>不同于传统常规软件系统，区块链开发调试一般要涉及更复杂的环境。所以Avalanche官方提供了一个本地测试环境Avalanche Network Runner (ANR)， 一个本地运行的Avalanche 网络，用于开发测试、调试。也可以直接在本地运行多个AvalancheGo实例，组成一个Avalanche网络，但是会比较麻烦，工作量相对使用ANR会大很多，使用起来也不方便。在子网产品发布之前（在部署在主网和Fuji测试网之前），都应该在本地ANR上经过充分测试和验证。
+ANR运行原理
+Run ANR as a binary。
+用户通过RPC对本地ANR网络进行操作：启动网络、建立一个subnet、添加nodes,删除nodes等。也可以通过API调用来做这些操作。然后，每个模拟节点都可以对外暴露api,来做一般的节点所能做的操作。</p>
+<p>abc</p>
+<p>abc
+案例</p>
+<h2 id="anr安装"><a class="header" href="#anr安装">ANR安装</a></h2>
+<p>源码安装的话需要先安装golang:
+cd ${HOME}/go/src/github.com/ava-labs/avalanche-network-runner
+go install -v ./cmd/avalanche-network-runner</p>
+<p>此外，ANR本地模拟节点运行的时候需要用到AVALANCHEGO_EXEC_PATH（即avalanchego程序运行的路径）</p>
+<h2 id="anr使用说明"><a class="header" href="#anr使用说明">ANR使用说明</a></h2>
+<p>ANR运行之后，就可以通过API调用来控制操作ANR。在启动运行ANR后，需要另外启动一个终端进行发送调用操作。</p>
+<h2 id="anr启动服务"><a class="header" href="#anr启动服务">ANR启动服务</a></h2>
+<p>运行下面命令启动服务，通过port标签指定主gRPC的端口，通过grpc-gatewar-port标签指定gRPC gateway的端口，即可以通过http请求。</p>
+<p>avalanche-network-runner server <br />
+--log-level debug <br />
+--port=&quot;:8080&quot; <br />
+--grpc-gateway-port=&quot;:8081&quot;</p>
+<p>运行上述命令之后，终端将会处于占用运行状态，通过CTRL+C关闭终端及ANR服务。所以如果要调用API，需要另启终端。
+当调用使用二进制程序进行命令的调用时，由主gRPC端口接收处理，在这个模式下，命令是通过编译好的可执行程序进行调用的。另外，也可以通过普通的http来发送调用API，这个时候就不需要通过可执行二进制文件，这个时候是向grpc-gateway-port端口发送请求。下面的每个API调用有两种方法的说明。</p>
+<h2 id="anr请求调用"><a class="header" href="#anr请求调用">ANR请求调用</a></h2>
+<h3 id="1ping已启动的server"><a class="header" href="#1ping已启动的server">1.ping已启动的server</a></h3>
+<p>grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/ping -d ''
+grpc方式：
+avalanche-network-runner ping <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot;</p>
+<h3 id="2启动一个有5个节点的avalanche网络"><a class="header" href="#2启动一个有5个节点的avalanche网络">2.启动一个有5个节点的Avalanche网络</a></h3>
+<p>grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/control/start -d '{&quot;execPath&quot;:&quot;'${AVALANCHEGO_EXEC_PATH}'&quot;,&quot;numNodes&quot;:5}'
+grpc方式：
+avalanche-network-runner control start <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot; <br />
+--number-of-nodes=5 <br />
+--avalanchego-path ${AVALANCHEGO_EXEC_PATH}</p>
+<p>也可以通过添加更多选项对网络进行控制。</p>
+<h3 id="3等待查询节点运行情况"><a class="header" href="#3等待查询节点运行情况">3.等待查询节点运行情况</a></h3>
+<p>grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/control/health -d ''
+grpc方式：
+avalanche-network-runner control health <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot;
+返回的数据会比较大，因为其包含了整个节点集群的状态信息。在最后，会有“healthy:true”的信息，说明节点集群是正常的，否者将会显示“healthy:false”。</p>
+<h3 id="4获取所有节点的api-endpoints"><a class="header" href="#4获取所有节点的api-endpoints">4.获取所有节点的API endpoints</a></h3>
+<p>grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/control/uris -d ''
+grpc方式：
+avalanche-network-runner control uris <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot;</p>
+<h3 id="5直接从server查询集群的状态"><a class="header" href="#5直接从server查询集群的状态">5.直接从server查询集群的状态</a></h3>
+<p>grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/control/status -d ''
+grpc方式：
+avalanche-network-runner control status <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot;
+流式
+avalanche-network-runner control <br />
+--request-timeout=3m <br />
+stream-status <br />
+--push-interval=5s <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot;</p>
+<h3 id="6节点的移除停止"><a class="header" href="#6节点的移除停止">6.节点的移除/停止</a></h3>
+<p>grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/control/removenode -d '{&quot;name&quot;:&quot;node5&quot;}'
+grpc方式：
+avalanche-network-runner control remove-node node5 <br />
+--request-timeout=3m <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot; </p>
+<h3 id="7重启节点"><a class="header" href="#7重启节点">7.重启节点</a></h3>
+<p>这里我们以重新启动node1为例，需要说明的是所有的节点都以node+n的方式命名，官方建议以这种方式命名以免出现其他问题。</p>
+<h1 id="eg-homegosrcgithubcomava-labsavalanchegobuildavalanchego"><a class="header" href="#eg-homegosrcgithubcomava-labsavalanchegobuildavalanchego">e.g., ${HOME}/go/src/github.com/ava-labs/avalanchego/build/avalanchego</a></h1>
+<p>AVALANCHEGO_EXEC_PATH=&quot;avalanchego&quot;
+grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/control/restartnode -d '{&quot;name&quot;:&quot;node1&quot;,&quot;execPath&quot;:&quot;'${AVALANCHEGO_EXEC_PATH}'&quot;}'
+grpc方式：
+avalanche-network-runner control restart-node node1 <br />
+--request-timeout=3m <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot; <br />
+--avalanchego-path ${AVALANCHEGO_EXEC_PATH}
+8.添加节点
+在这个案例中，我们将添加一个名为node99的节点。</p>
+<h1 id="eg-homegosrcgithubcomava-labsavalanchegobuildavalanchego-1"><a class="header" href="#eg-homegosrcgithubcomava-labsavalanchegobuildavalanchego-1">e.g., ${HOME}/go/src/github.com/ava-labs/avalanchego/build/avalanchego</a></h1>
+<p>AVALANCHEGO_EXEC_PATH=&quot;avalanchego&quot;
+grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/control/addnode -d '{&quot;name&quot;:&quot;node99&quot;,&quot;execPath&quot;:&quot;'${AVALANCHEGO_EXEC_PATH}'&quot;}'
+grpc方式：
+avalanche-network-runner control add-node node99 <br />
+--request-timeout=3m <br />
+--endpoint=&quot;0.0.0.0:8080&quot; <br />
+--avalanchego-path ${AVALANCHEGO_EXEC_PATH}
+也可以为节点添加其他配置参数，--node-config允许分配特定的avalanchego配置参数给新加入的节点。
+--node-config '{&quot;index-enabled&quot;:false, &quot;api-admin-enabled&quot;:true,&quot;network-peer-list-gossip-frequency&quot;:&quot;300ms&quot;}'</p>
+<p>9.结束节点集群
+grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/control/stop -d ''
+grpc方式：
+avalanche-network-runner control stop <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot;
+需要说明的是，运行这些命令之后，之前启动server的终端还是需要通过Ctrl-C来关闭释放shell.
+在ANR上部署Subets测试
+abc
+blobvm子网区块链部署
+定制的区块链需要自定义VM，这在本章节，我们将部署一个定制VM到一个子网上，整个过程于部署subnet-evm大同小异。我们用到的vm是blobvm（也可以用上一章已完成的TimestampVM）。blobvm是一个支持内容寻址存储的VM，可以通过兼容EIP-712钱包存储任意K/V数据。具体步骤如下。
+按照上一小节介绍的方式，安装并运行ANR RPC server，通过下面的命令确保服务正常运行：
+curl -X POST -k http://localhost:8081/v1/ping -d ''</p>
+<p>然后需要通过工具subnet-cli 创建VM ID：
+subnet-cli create VMID blobvm</p>
+<h1 id="km6h4lye3aceu1mb2ung6ubzaidaalzzpvrbx8zn3hxf6avd8"><a class="header" href="#km6h4lye3aceu1mb2ung6ubzaidaalzzpvrbx8zn3hxf6avd8">kM6h4LYe3AcEU1MB2UNg6ubzAiDAALZzpVrbX8zn3hXF6Avd8</a></h1>
+<p>创建blobvm，先克隆git仓库，然后通过自带脚本build:
+git clone https://github.com/ava-labs/blobvm ${HOME}/go/src/github.com/ava-labs/blobvm
+cd ${HOME}/go/src/github.com/ava-labs/blobvm
+go build -v <br />
+-o ${HOME}/go/src/github.com/ava-labs/avalanchego/build/plugins/kM6h4LYe3AcEU1MB2UNg6ubzAiDAALZzpVrbX8zn3hXF6Avd8 <br />
+./cmd/blobvm</p>
+<p>最后确认是否正确编译：
+find ${HOME}/go/src/github.com/ava-labs/avalanchego/build</p>
+<h1 id="should-yield-something-like"><a class="header" href="#should-yield-something-like">should yield something like:</a></h1>
+<h1 id="build"><a class="header" href="#build">.../build</a></h1>
+<h1 id="buildplugins"><a class="header" href="#buildplugins">.../build/plugins</a></h1>
+<h1 id="buildpluginskm6h4lye3aceu1mb2ung6ubzaidaalzzpvrbx8zn3hxf6avd8"><a class="header" href="#buildpluginskm6h4lye3aceu1mb2ung6ubzaidaalzzpvrbx8zn3hxf6avd8">.../build/plugins/kM6h4LYe3AcEU1MB2UNg6ubzAiDAALZzpVrbX8zn3hXF6Avd8</a></h1>
+<h1 id="buildpluginsevm"><a class="header" href="#buildpluginsevm">.../build/plugins/evm</a></h1>
+<h1 id="buildavalanchego"><a class="header" href="#buildavalanchego">.../build/avalanchego</a></h1>
+<p>每个VM都需要一个genesis 文件，对于blobvm，genesis文件很简单，git仓库中有一个辅助工具可以创建该文件：</p>
+<h1 id="generate-the-genesis-for-the-custom-vm"><a class="header" href="#generate-the-genesis-for-the-custom-vm">generate the genesis for the custom VM</a></h1>
+<p>cd ${HOME}/go/src/github.com/ava-labs/blobvm
+go install -v ./cmd/blob-cli
+echo &quot;[]&quot; &gt; /tmp/alloc.json
+blob-cli genesis 1 /tmp/alloc.json --genesis-file /tmp/blobvm.genesis.json</p>
+<h1 id="print-contents"><a class="header" href="#print-contents">print contents</a></h1>
+<p>cat /tmp/blobvm.genesis.json</p>
+<p>为方便使用，设置环境变量：</p>
+<h1 id="replace-execpath-with-the-path-to-avalanchego-on-your-machine"><a class="header" href="#replace-execpath-with-the-path-to-avalanchego-on-your-machine">replace execPath with the path to AvalancheGo on your machine</a></h1>
+<p>AVALANCHEGO_EXEC_PATH=<br />
+&quot;${HOME}/go/src/github.com/ava-labs/avalanchego/build/avalanchego&quot;
+AVALANCHEGO_PLUGIN_PATH=<br />
+&quot;${HOME}/go/src/github.com/ava-labs/avalanchego/build/plugins&quot;</p>
+<p>接下来启动节点，这个案例里启动时传入一些自定义的参数，包含了区块genesis和VM名称：
+curl -X POST -k http://localhost:8081/v1/control/start -d '{
+&quot;execPath&quot;:&quot;'${AVALANCHEGO_EXEC_PATH}'&quot;,
+&quot;numNodes&quot;:5,
+&quot;logLevel&quot;:&quot;INFO&quot;,
+&quot;pluginDir&quot;:&quot;'${AVALANCHEGO_PLUGIN_PATH}'&quot;,
+&quot;customVms&quot;:{&quot;blobvm&quot;:&quot;/tmp/blobvm.genesis.json&quot;}}'
+也可以grpc方式：
+avalanche-network-runner control start <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot; <br />
+--avalanchego-path ${AVALANCHEGO_EXEC_PATH} <br />
+--plugin-dir ${AVALANCHEGO_PLUGIN_PATH} <br />
+--blockchain-specs '[{&quot;vm_name&quot;:&quot;blobvm&quot;,&quot;genesis&quot;:&quot;/tmp/blobvm.genesis.json&quot;}]'</p>
+<p>到此，就完成了blobvm在ANR上的部署。我们就可以通过下面的命令来查看整个网络的运行状态：</p>
+<h1 id="to-get-cluster-information-including-blockchain-id"><a class="header" href="#to-get-cluster-information-including-blockchain-id">to get cluster information including blockchain ID</a></h1>
+<p>curl -X POST -k http://localhost:8081/v1/control/status -d ''</p>
+<p>后面就可以根据我们区块链的功能进行进一步测试。</p>
+<p>Timestamp子网部署
+根据VM开发部分的介绍，那里我们得到了一个已编译好的VM可以执行二进制文件。</p>
+<p>abc</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="第七章-本地调试"><a class="header" href="#第七章-本地调试">第七章 本地调试</a></h1>
+<p>生成配置
+这里我们可以利用Avalanche-CLI工具快速本地部署子网进行测试。
+输入命令：avalanche subnet create <subnetName> ,将尖括号内的bubnetName改为自己的子网名称即可。然后跟着提示选择子网类型，一类是基于EVM的以太坊EVM。一类是自定义的VM。这里我们先择Custom自定义。</p>
+<p>然后会提示要求输入子网生成文件和VM文件所在路径，即指定子网的初始化文件和vm的编译好的可执行文件。</p>
+<p>完成后可以通过avalanche subnet list命令查看目前已经配置好的子网信息：</p>
+<p>本地部署
+avalanche subnet deploy <subnetName>命令开始部署子网</p>
+<p>根据提示，先择Local Network</p>
+<p>njz@DESKTOP-K4L8TPO:~$ avalanche subnet list
++--------------+--------------+----------+--------+----------+
+|    SUBNET    |    CHAIN     | CHAIN ID |  TYPE  | DEPLOYED |
++--------------+--------------+----------+--------+----------+
+| mytestsubnet | mytestsubnet |          | Custom | No       |
++--------------+--------------+----------+--------+----------+
+njz@DESKTOP-K4L8TPO:~$</p>
+<p>后面就可以根据我们区块链的功能进行进一步测试。</p>
+<p>Postman安装配置
+为了方便测试调试子网区块链的API，这里我们利用Postman调试工具来进行各个API调试。可以用于节点API、子网API、甚至AvalancheNetworkRunner的API。
+安装
+。。。。。</p>
+<p>导入Collections</p>
+<p>切换到Import From Link选项，在输入框中输入avalanche官方提供的地址链接：
+https://raw.githubusercontent.com/ava-labs/avalanche-postman-collection/master/Avalanche.postman_collection.json
+之后点击Import按钮，将文件导入。左侧Collections一栏将会显示所有的Collections。</p>
+<p>导入Environment</p>
+<p>切换到Import From Link选项，在输入框中输入avalanche官方提供的地址链接：
+https://raw.githubusercontent.com/ava-labs/avalanche-postman-collection/master/Example-Avalanche-Environment.postman_environment.json
+之后点击Import按钮，将文件导入
+在确保avalanche-network-runner server开启之后，我们就可以通过postman方便地对avalanche-network-runner 进行操作。例如查看一个节点的运行情况，通过postman调用health API：</p>
+<p>启动本地网络avalanche-network-runner</p>
+<p>运行启动命令启动ANR服务：
+avalanche-network-runner server <br />
+--log-level debug <br />
+--port=&quot;:8080&quot; <br />
+--grpc-gateway-port=&quot;:8081&quot;</p>
+<p>然后通过API启动本地网络。需要另外启动新的终端运行其他命令。也可以通过postman快速实现调用，同时方便分析返回的数据。</p>
+<p>通过Postman启动本地网络（5 nodes）</p>
+<p>通过Health API 查看目前节点运行情况</p>
+<p>Health API 返回的内容比较多，如下：
+{
+&quot;clusterInfo&quot;: {
+&quot;nodeNames&quot;: [
+&quot;node1&quot;,
+&quot;node2&quot;,
+&quot;node3&quot;,
+&quot;node4&quot;,
+&quot;node5&quot;
+],
+&quot;nodeInfos&quot;: {
+&quot;node1&quot;: {
+&quot;name&quot;: &quot;node1&quot;,
+&quot;execPath&quot;: &quot;./avalanchego/avalanchego&quot;,
+&quot;uri&quot;: &quot;http://127.0.0.1:43767&quot;,
+&quot;id&quot;: &quot;NodeID-7Xhw2mDxuDS44j42TCB6U5579esbSt3Lg&quot;,
+&quot;logDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node1/log&quot;,
+&quot;dbDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node1/db-dir&quot;,
+&quot;pluginDir&quot;: &quot;avalanchego/plugins&quot;,
+&quot;whitelistedSubnets&quot;: &quot;&quot;,
+&quot;config&quot;: &quot;&quot;
+},
+&quot;node2&quot;: {
+&quot;name&quot;: &quot;node2&quot;,
+&quot;execPath&quot;: &quot;./avalanchego/avalanchego&quot;,
+&quot;uri&quot;: &quot;http://127.0.0.1:25330&quot;,
+&quot;id&quot;: &quot;NodeID-MFrZFVCXPv5iCn6M9K6XduxGTYp891xXZ&quot;,
+&quot;logDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node2/log&quot;,
+&quot;dbDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node2/db-dir&quot;,
+&quot;pluginDir&quot;: &quot;avalanchego/plugins&quot;,
+&quot;whitelistedSubnets&quot;: &quot;&quot;,
+&quot;config&quot;: &quot;&quot;
+},
+&quot;node3&quot;: {
+&quot;name&quot;: &quot;node3&quot;,
+&quot;execPath&quot;: &quot;./avalanchego/avalanchego&quot;,
+&quot;uri&quot;: &quot;http://127.0.0.1:13212&quot;,
+&quot;id&quot;: &quot;NodeID-NFBbbJ4qCmNaCzeW7sxErhvWqvEQMnYcN&quot;,
+&quot;logDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node3/log&quot;,
+&quot;dbDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node3/db-dir&quot;,
+&quot;pluginDir&quot;: &quot;avalanchego/plugins&quot;,
+&quot;whitelistedSubnets&quot;: &quot;&quot;,
+&quot;config&quot;: &quot;&quot;
+},
+&quot;node4&quot;: {
+&quot;name&quot;: &quot;node4&quot;,
+&quot;execPath&quot;: &quot;./avalanchego/avalanchego&quot;,
+&quot;uri&quot;: &quot;http://127.0.0.1:28389&quot;,
+&quot;id&quot;: &quot;NodeID-GWPcbFJZFfZreETSoWjPimr846mXEKCtu&quot;,
+&quot;logDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node4/log&quot;,
+&quot;dbDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node4/db-dir&quot;,
+&quot;pluginDir&quot;: &quot;avalanchego/plugins&quot;,
+&quot;whitelistedSubnets&quot;: &quot;&quot;,
+&quot;config&quot;: &quot;&quot;
+},
+&quot;node5&quot;: {
+&quot;name&quot;: &quot;node5&quot;,
+&quot;execPath&quot;: &quot;./avalanchego/avalanchego&quot;,
+&quot;uri&quot;: &quot;http://127.0.0.1:62510&quot;,
+&quot;id&quot;: &quot;NodeID-P7oB2McjBGgW2NXXWVYjV8JEDFoW9xDE5&quot;,
+&quot;logDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node5/log&quot;,
+&quot;dbDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node5/db-dir&quot;,
+&quot;pluginDir&quot;: &quot;avalanchego/plugins&quot;,
+&quot;whitelistedSubnets&quot;: &quot;&quot;,
+&quot;config&quot;: &quot;&quot;
+}
+},
+&quot;pid&quot;: 401,
+&quot;rootDataDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350&quot;,
+&quot;healthy&quot;: true,
+&quot;attachedPeerInfos&quot;: {},
+&quot;customChainsHealthy&quot;: false,
+&quot;customChains&quot;: {},
+&quot;subnets&quot;: []
+}
+}
+从返回的数据可以查看每个节点的运行情况。
+子网API测试
+TimestampVM是一个可以将重要信息进行链上保存，并有永久不可以修改的特点。</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="第八章-生产环境部署"><a class="header" href="#第八章-生产环境部署">第八章 生产环境部署</a></h1>
+<p>在完成Subnet本地环境测试后，最终我们的目的是将区块链部署到生产环境下（即公链环境下）。在生产环境中运行以下子网区块链相对于于本地环境，要涉及到的内容要很很多，需要考虑实际应用的贴合度，正常运行的维护，升级，还要考虑到现在的对抗破环等问题。
+实际工程中，不同的子网需要考虑的环境因素肯定不一样，两个不同应用类别、不同业务逻辑的子网在部署流程上可能完全不同，然而，本文将尽可能地介绍最广泛存在的共性问题，希望能够针对大家都会遇到地问题建立一个感官概念。</p>
+<h2 id="节点配置"><a class="header" href="#节点配置">节点配置</a></h2>
+<p>Avalanche节点是运行子网的实际具体运行单元。最基本地，子网需要验证节点，用可能还需要节点能够提供RPC服务，检索、查询等功能，这些都是通过Avalanche节点程序来实现。运行一个节点本质上就是在一个服务器上运行一个AvalancheGo实例。
+对于服务程序所在地操作系统，原则上是没有限制的，可以是MacOS,，可以是Windows，但是强烈建议linux,因为工具的原因，很多工具都是面向liunx系统。
+至于服务器的部署位置，这个可以是个人电脑、专业托管机房、也可以是云服务器。</p>
+<h2 id="验证节点数量"><a class="header" href="#验证节点数量">验证节点数量</a></h2>
+<p>子网的验证节点的数量是一个非常关键的参数，为了子网的稳定和最大去中心化，验证节点要尽量的多。为保证子网稳定，建议最低要有5个验证节点。
+节点的同步
+一切软件硬件准备就绪后，节点需要区块同步，即需要将创世区块到目前的区块的所有数据全部拷贝到本节点,这个过程将会十分耗时，如果一个节点要全部同步需要超过一周的时间（而且这个时间将随着区块的不断增长而增长）。此外也有其他同步方法可以缩短时间，这个取决实际条件。</p>
+<h2 id="世界态的同步"><a class="header" href="#世界态的同步">世界态的同步</a></h2>
+<p>一个验证节点可以不同步整个区块链的交易历史也可以正常的运行验证，这个时候只需要同步世界态State即可。这里得益于Avalanche共识协议的机制，共识的基础不是根据完全根据过去的区块以及类似比特币的区块链。所以可以快速同步时间态然后运行验证程序。</p>
+<h2 id="数据库拷贝"><a class="header" href="#数据库拷贝">数据库拷贝</a></h2>
+<p>另外一个数据同步的方法就是直接拷贝数据库。因为各个节点的数据库都是相同的，所以我们可以从其中某一个节点直接拷贝整个区块链的数据库，这个不同于整个网络同步，我们可以只与某一个节点链接拷贝。</p>
+<h2 id="子网部署"><a class="header" href="#子网部署">子网部署</a></h2>
+<p>软硬件、数据都准备好之后，下一步就是实质性部署Subnet，这里为简化部署流程，Avalanche官方提供了一个工具“Subnet-Cli”,具体的Subnet-Clic使用方法可以另查资料，下面的教程中会根据本案例需要的部分进行说明。</p>
+<h2 id="ledger-硬件钱包"><a class="header" href="#ledger-硬件钱包">Ledger 硬件钱包</a></h2>
+<p>目前的子网，一些关键的内容管理操作需要一定的权限，区块链领域一部通过私钥来进行授权管理，包括验证节点的添加，节点的配置等。谁拥有控制该子网的私钥，谁就可以拥有整个私钥的控制权，以及子网的运行方式。因此如果子网是需要被控制的，这个私钥的管理就显得非常重要。所以这里引入了一个硬件钱包来管理私钥——Ledger。区块链领域，钱包的核心作用其实就是保管私钥，以安全的方式用该私钥来进行数字签名或者其他操作。
+为了避免遗失私钥或者泄露私钥导致灾难性的后果，我们利用Ledger来管理私钥。上小结所讲的Subnet-Cli也支持Ledger操作。</p>
+<h2 id="genesis文件"><a class="header" href="#genesis文件">Genesis文件</a></h2>
+<p>涉及到子网的一些非常重要的参数一般保存在Genesis文件中，该文件以json格式的方式组织数据，人类可读。genesis文件部分在前面的章节已有过介绍，在你准备部署Subnet之前需要准备好genesis文件。</p>
+<h2 id="subnet-cli-引导"><a class="header" href="#subnet-cli-引导">Subnet-CLI 引导</a></h2>
+<p>创建Subnet具体步骤如下：
+创建VMID
+创建Subnet
+在子网上创建区块链
+向子网中添加验证节点validators.
+为了简化流程，Subnet-CLI以wizard导向的方式来完成上述的工作流程，这样避免了一些潜在的错误，并将需要完成的任务安先后顺序流程化。在运行Subnet-CLI wizard之前，需要将VMID、验证节点validator的NodeIDs准备好，
+Subnet-CLI wizard使用命令：
+subnet-cli wizard <br />
+--ledger <br />
+--node-ids=NodeID-741aqvs6R4iuHDyd1qT1NrFTmsgu78dc4,NodeID-K7Y79oAmBntAcdkyY1CLxCim8QuqcZbBp,NodeID-C3EY6u4v7DDi6YEbYf1wmXdvkEFXYuXNW,NodeID-AiLGeqQfh9gZY3Y8wLMD15tuJtsJHq5Qi <br />
+--vm-genesis-path=prod-genesis.json <br />
+--vm-id=tGas3T58KzdjLHhBDMnH2TvrddhqTji5iZAMZ3RXs2NLpSnhH <br />
+--chain-name=prodSubnet
+wizard完成以后，subnet就已经创建部署完成，就可以通过Subnet浏览器查看到相关信息。部署完成以后，也可以通过Subnet-CLI来进行相关操作，比如添加新的validator和刷新过期子网等等。</p>
+<h2 id="验证节点的配置"><a class="header" href="#验证节点的配置">验证节点的配置</a></h2>
+<p>相对于单独运行Avalanche节点，运行子网验证节点需要考虑更多的因素具体如下。</p>
+<h3 id="子网白名单"><a class="header" href="#子网白名单">子网白名单</a></h3>
+<p>加入子网的验证节点需要两个先决条件：
+必须是主网的验证节点
+是在子网的白名单内
+Avalanche主网验证节点这个先决条件目前只是AvalancheGo节点程序代码层面的要求，并非共识协议的要求，也没有代币经济学激励机制来鼓励这样做。正常规律来说，这种代码级别的限制、要求比较牵强。后续可能会根据生态的发展和更多的应用落地有所改变。
+子网同步，需要添加命令行选项--whitelisted-subnets ，或者在节点配置文件中（ .avalanchego/configs/node.json     ）添加配置键 whitelisted-subnets进行配置，一个节点可以同步多个子网区块链的数据，所以，如果要同步多个子网区块链，只需将每个子网ID逗号隔开即可。示例如下：
+{
+&quot;dynamic-public-ip&quot;: &quot;opendns&quot;,
+&quot;http-host&quot;: &quot;&quot;,
+&quot;whitelisted-subnets&quot;: &quot;28nrH5T2BMvNrWecFcV3mfccjs6axM1TVyqe79MCv2Mhs8kxiY,Ai42MkKqk8yjXFCpoHXw7rdTWSHiKEMqh5h8gbxwjgkCUfkrk&quot;
+}
+但是这里只是配置文件添加了子网，还需要将子网VM放到plugin路径中。需要注意的是二进制VM可执行文件的命名需要与上文中通过Subnet-CLI生成的VMID相同。</p>
+<h2 id="子网启动"><a class="header" href="#子网启动">子网启动</a></h2>
+<p>VM安装完成并添加了子网白名单之后，就可以开始同步子网区块数据了。重新启动Avalanche节点程序，并观察日子输出，会得到类似的结果：
+Jul 30 18:26:31 node-fuji avalanchego[1728308]: [07-30|18:26:31.422] INFO chains/manager.go:262 creating chain:
+Jul 30 18:26:31 node-fuji avalanchego[1728308]:     ID: 2ebCneCbwthjQ1rYT41nhd7M76Hc6YmosMAQrTFhBq8qeqh6tt
+Jul 30 18:26:31 node-fuji avalanchego[1728308]:     VMID:srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy
+这表示节点已经识别到子网，并尝试初始化并同步数据。如果该子网已经存在交易数据的话，将会需要一定的时间，具体情况看子网历史数据大小而定。最终，同步结束，log会显示如下信息：
+Jul 30 18:27:21 node-fuji avalanchego[1728308]: [07-30|18:27:21.055] INFO &lt;2ebCneCbwthjQ1rYT41nhd7M76Hc6YmosMAQrTFhBq8qeqh6tt Chain&gt; snowman/transitive.go:333 consensus starting with J5wjmotMCrM2DKxeBTBPfwgCPpvsjtuqWNozLog2TomTjSuGK as the last accepted block
+这个表示节点已经完成了启动，同步了区块数据。如果节点是子网的验证节点，其将开始验证子网上的交易数据。</p>
+<h2 id="状态监控"><a class="header" href="#状态监控">状态监控</a></h2>
+<p>在同步子网的时候，可以通过RPC调用来查看区块状态。如果想要更深入了解子网的操作情况，可以通过区块日志去进一步查看。默认情况下，区块日志存放在~/.avalanchego /logs/ChainID.log，其中ChainID是指具体的区块链的ID。
+此外还可以通过更专业的工具来对节点的情况进行监控，比如Prometheus+Grafana监控系统，带有定制的仪表dashboards用于显现常规的节点操作。还有一些专门用于子网节点数据显示。</p>
+<h2 id="验证管理"><a class="header" href="#验证管理">验证管理</a></h2>
+<p>在Avalanche中，所有的验证节点都是有时间限制的，时间跨度可以从两周到一年不等，因此，子网验证节点的验证时间周期必须在主网验证周期以内。这就意味着所有的节点的有效期都是周期性的，过了验证周期就需要重新发起验证交易以加入主网验证节点集群。这个是由于Avalanche共识所基于POS的原因。
+为了避免所有节点的验证周期同时过期，建议所有的节点验证周期相互错开，错开的时间最少是一天以上。</p>
+<h2 id="总结"><a class="header" href="#总结">总结</a></h2>
+<p>运行一个子网不是一个一次性的工作，而是运行一个7*24全年无休的服务。所以最好有健壮的日志系统，监控系统，以及通知机制。不断的对节点及子网的健康状态进行检查，并在问题刚刚发生的时候及时通知到。</p>
 <div style="break-before: page; page-break-before: always;"></div><p><a href="https://crates.io/crates/timestampvm"><img alt="crates.io" src="https://img.shields.io/crates/v/timestampvm.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20"></a>
 <a href="https://docs.rs/timestampvm"><img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-timestampvm-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20"></a>
 <img src="https://github.com/ava-labs/timestampvm-rs/actions/workflows/test-and-release.yml/badge.svg" alt="Github Actions" /></p>

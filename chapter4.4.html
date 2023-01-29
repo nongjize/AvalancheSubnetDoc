@@ -3,8 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Page not found</title>
-        <base href="/">
+        <title>封装运行</title>
 
 
         <!-- Custom HTML head -->
@@ -81,7 +80,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li><li class="chapter-item expanded "><a href="chapter3.html"><strong aria-hidden="true">3.</strong> 第三章 VM与AvalancheGo的连接</a></li><li class="chapter-item expanded "><a href="chapter4.html"><strong aria-hidden="true">4.</strong> 第四章 Subnet by go</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter4.1.html"><strong aria-hidden="true">4.1.</strong> 时间戳服务器的实现Virtual Machine</a></li><li class="chapter-item expanded "><a href="chapter4.2.html"><strong aria-hidden="true">4.2.</strong> Static API</a></li><li class="chapter-item expanded "><a href="chapter4.3.html"><strong aria-hidden="true">4.3.</strong> API</a></li><li class="chapter-item expanded "><a href="chapter4.4.html"><strong aria-hidden="true">4.4.</strong> 封装运行</a></li></ol></li><li class="chapter-item expanded "><a href="chapter5.html"><strong aria-hidden="true">5.</strong> 第五章 专用EVM开发</a></li><li class="chapter-item expanded "><a href="chapter6.html"><strong aria-hidden="true">6.</strong> 第六章 本地网络模拟ANR</a></li><li class="chapter-item expanded "><a href="chapter7.html"><strong aria-hidden="true">7.</strong> 第七章 本地调试</a></li><li class="chapter-item expanded "><a href="chapter8.html"><strong aria-hidden="true">8.</strong> 第八章 生产环境部署</a></li><li class="chapter-item expanded "><a href="SubnetByRust.html"><strong aria-hidden="true">9.</strong> Subnet by rust</a></li><li class="chapter-item expanded "><a href="SubnetByGo.html"><strong aria-hidden="true">10.</strong> Subnet by go</a></li><li class="chapter-item expanded "><a href="Go-Plugin/hashicorpGoPlugin.html"><strong aria-hidden="true">11.</strong> Hashicop Go Plugin</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li><li class="chapter-item expanded "><a href="chapter3.html"><strong aria-hidden="true">3.</strong> 第三章 VM与AvalancheGo的连接</a></li><li class="chapter-item expanded "><a href="chapter4.html"><strong aria-hidden="true">4.</strong> 第四章 Subnet by go</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter4.1.html"><strong aria-hidden="true">4.1.</strong> 时间戳服务器的实现Virtual Machine</a></li><li class="chapter-item expanded "><a href="chapter4.2.html"><strong aria-hidden="true">4.2.</strong> Static API</a></li><li class="chapter-item expanded "><a href="chapter4.3.html"><strong aria-hidden="true">4.3.</strong> API</a></li><li class="chapter-item expanded "><a href="chapter4.4.html" class="active"><strong aria-hidden="true">4.4.</strong> 封装运行</a></li></ol></li><li class="chapter-item expanded "><a href="chapter5.html"><strong aria-hidden="true">5.</strong> 第五章 专用EVM开发</a></li><li class="chapter-item expanded "><a href="chapter6.html"><strong aria-hidden="true">6.</strong> 第六章 本地网络模拟ANR</a></li><li class="chapter-item expanded "><a href="chapter7.html"><strong aria-hidden="true">7.</strong> 第七章 本地调试</a></li><li class="chapter-item expanded "><a href="chapter8.html"><strong aria-hidden="true">8.</strong> 第八章 生产环境部署</a></li><li class="chapter-item expanded "><a href="SubnetByRust.html"><strong aria-hidden="true">9.</strong> Subnet by rust</a></li><li class="chapter-item expanded "><a href="SubnetByGo.html"><strong aria-hidden="true">10.</strong> Subnet by go</a></li><li class="chapter-item expanded "><a href="Go-Plugin/hashicorpGoPlugin.html"><strong aria-hidden="true">11.</strong> Hashicop Go Plugin</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -142,14 +141,71 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="document-not-found-404"><a class="header" href="#document-not-found-404">Document not found (404)</a></h1>
-<p>This URL is invalid, sorry. Please use the navigation bar or search to continue.</p>
+                        <h2 id="封装运行"><a class="header" href="#封装运行">封装运行</a></h2>
+<h3 id="封装插件plugin"><a class="header" href="#封装插件plugin">封装插件plugin</a></h3>
+<p>原理部分的内容介绍过，VM和AvalancheGo是通过go-plugin来链接的。所以我们的VM需要封装成为一个go-plugin插件包。然后AvalancheGo就可以通过其内部的rpcchainvm来调用vm的各个函数了。
+这里只需要简单封装在一个main package中的main()函数即可。</p>
+<p>func main() {
+log.Root().SetHandler(log.LvlFilterHandler(log.LvlDebug, log.StreamHandler(os.Stderr, log.TerminalFormat())))
+plugin.Serve(&amp;plugin.ServeConfig{
+HandshakeConfig: rpcchainvm.Handshake,
+Plugins: map[string]plugin.Plugin{
+&quot;vm&quot;: rpcchainvm.New(&amp;timestampvm.VM{}),
+},</p>
+<pre><code>    // A non-nil value here enables gRPC serving for this plugin...
+    GRPCServer: plugin.DefaultGRPCServer,
+})
+</code></pre>
+<p>}</p>
+<h3 id="编译成可执行二进制文件"><a class="header" href="#编译成可执行二进制文件">编译成可执行二进制文件</a></h3>
+<p>接下来我们需要将程序代码编译成可以执行二进制文件，这里利用AvalancheGo 官方开源的一个工具脚本就可以完成：
+./scripts/build.sh    ../avalanchego/build/plugins    timestampvm</p>
+<p>完成后，可执行文件将存放在~/avalanchego/build/plugins 下面.</p>
+<h3 id="vm别名"><a class="header" href="#vm别名">VM别名</a></h3>
+<p>VM的ID是一个32 byte的CB58编码字符串。比如TimestampVM对应的ID是：[tGas3T58KzdjLHhBDMnH2TvrddhqTji5iZAMZ3RXs2NLpSnhH]。
+为了方便使用，我们一般可以针对该ID设置多个别名，在调用的时候，就可以使别名来代替这一串难记的字符串ID[tGas3T58KzdjLHhBDMnH2TvrddhqTji5iZAMZ3RXs2NLpSnhH]。以TimestampVM为例，通过在~/.avalanchego/configs/vms/aliases.json文件中添加以下内容进行别名注册即可：
+{
+&quot;tGas3T58KzdjLHhBDMnH2TvrddhqTji5iZAMZ3RXs2NLpSnhH&quot;: [
+&quot;timestampvm&quot;,
+&quot;timestamp&quot;
+]
+}</p>
+<h3 id="vm安装"><a class="header" href="#vm安装">VM安装</a></h3>
+<p>AvalancheGO在启动的时候会先对plugins目录进行扫描有没有可以用的VM。所以安装VM我们只需要把前面编译好的VM的二进制可执行放到这个对应的路径即可，需要注意的是可执行二进制文件名必须是VM的ID或者其已经注册的别名。</p>
+<p>如果节点还没有运行，将所有的可执行二进制的VM文件放到plugin路径下，启动节点即完成按照，</p>
+<p>如果节点正在运行，我们中途添加子网VM就需要调用loadVMs API：
+curl -sX POST --data '{
+&quot;jsonrpc&quot;:&quot;2.0&quot;,
+&quot;id&quot;     :1,
+&quot;method&quot; :&quot;admin.loadVMs&quot;,
+&quot;params&quot; :{}
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/admin</p>
+<p>然后检查返回的数据是否包含要按照的VM的ID：
+{
+&quot;jsonrpc&quot;: &quot;2.0&quot;,
+&quot;result&quot;: {
+&quot;newVMs&quot;: {
+&quot;tGas3T58KzdjLHhBDMnH2TvrddhqTji5iZAMZ3RXs2NLpSnhH&quot;: [
+&quot;timestampvm&quot;,
+&quot;timestamp&quot;
+],
+&quot;spdxUxVJQbX85MGxMHbKw1sHxMnSqJ3QBzDyDYEP3h6TLuxqQ&quot;: []
+}
+},
+&quot;id&quot;: 1
+}</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="chapter4.3.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
 
+                            <a rel="next" href="chapter5.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -157,7 +213,13 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="chapter4.3.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
 
+                    <a rel="next" href="chapter5.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
             </nav>
 
         </div>

@@ -1,0 +1,497 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>时间戳服务器的实现Virtual Machine</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li><li class="chapter-item expanded "><a href="chapter3.html"><strong aria-hidden="true">3.</strong> 第三章 VM与AvalancheGo的连接</a></li><li class="chapter-item expanded "><a href="chapter4.html"><strong aria-hidden="true">4.</strong> 第四章 Subnet by go</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter4.1.html" class="active"><strong aria-hidden="true">4.1.</strong> 时间戳服务器的实现Virtual Machine</a></li><li class="chapter-item expanded "><a href="chapter4.2.html"><strong aria-hidden="true">4.2.</strong> Static API</a></li><li class="chapter-item expanded "><a href="chapter4.3.html"><strong aria-hidden="true">4.3.</strong> API</a></li><li class="chapter-item expanded "><a href="chapter4.4.html"><strong aria-hidden="true">4.4.</strong> 封装运行</a></li></ol></li><li class="chapter-item expanded "><a href="chapter5.html"><strong aria-hidden="true">5.</strong> 第五章 专用EVM开发</a></li><li class="chapter-item expanded "><a href="chapter6.html"><strong aria-hidden="true">6.</strong> 第六章 本地网络模拟ANR</a></li><li class="chapter-item expanded "><a href="chapter7.html"><strong aria-hidden="true">7.</strong> 第七章 本地调试</a></li><li class="chapter-item expanded "><a href="chapter8.html"><strong aria-hidden="true">8.</strong> 第八章 生产环境部署</a></li><li class="chapter-item expanded "><a href="SubnetByRust.html"><strong aria-hidden="true">9.</strong> Subnet by rust</a></li><li class="chapter-item expanded "><a href="SubnetByGo.html"><strong aria-hidden="true">10.</strong> Subnet by go</a></li><li class="chapter-item expanded "><a href="Go-Plugin/hashicorpGoPlugin.html"><strong aria-hidden="true">11.</strong> Hashicop Go Plugin</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title"></h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h2 id="时间戳服务器的实现virtual-machine"><a class="header" href="#时间戳服务器的实现virtual-machine">时间戳服务器的实现Virtual Machine</a></h2>
+<p>下面我们开始实现时间戳服务区块链的的各项功能，也就是block.ChainVM接口的实现。
+VM结构体定义：
+type VM struct {
+ctx       *snow.Context
+dbManager manager.Manager
+state State
+preferred ids.ID
+toEngine chan&lt;- common.Message
+mempool [][dataLen]byte
+verifiedBlocks map[ids.ID]*Block
+}</p>
+<p>Initialize初始化
+Initialize(...)
+Virtual Machine
+时间戳服务器的实现
+type VM struct {
+ctx       *snow.Context
+dbManager manager.Manager
+state State
+preferred ids.ID
+toEngine chan&lt;- common.Message
+mempool [][dataLen]byte
+verifiedBlocks map[ids.ID]*Block
+}</p>
+<p>以下为该结构体所实现的方法
+Initialize 初始化
+Initialize(...) 
+初始化vm
+1.确定vm版本 version,并打印到log中
+2.根据dbManager初始化state
+3.确定、初始化创世数据，如果没有创世块，根据创世数据建立创世区块，并存入区块链中。
+4.确定最新接受的的区块，如果没有，将创世块视为最新区块。</p>
+<p>CreateHandlers()
+CreateStaticHandlers()
+HealthCheck()</p>
+<p>BuildBlock()
+创建区块，所创建的区块将是vm期望加入到共识中的区块。1.判断vm.mempool中的数据是否合法
+2.获取preferredBlock，并将其设置为下面将要创建的新区块的父区块
+3.创建区块，并将调用区块的.Verify() 如无异常，返回新生成的区块。</p>
+<p>initGenesis 建立创世区块
+initGenesis()是一个helper方法，用于初始化创世区块，然后将其放入state中。
+// Initializes Genesis if required
+func (vm *VM) initGenesis(genesisData []byte) error {
+stateInitialized, err := vm.state.IsInitialized()
+if err != nil {
+return err
+}</p>
+<pre><code>// if state is already initialized, skip init genesis.
+if stateInitialized {
+    return nil
+}
+
+if len(genesisData) &gt; dataLen {
+    return errBadGenesisBytes
+}
+
+// genesisData is a byte slice but each block contains an byte array
+// Take the first [dataLen] bytes from genesisData and put them in an array
+var genesisDataArr [dataLen]byte
+copy(genesisDataArr[:], genesisData)
+
+// Create the genesis block
+// Timestamp of genesis block is 0. It has no parent.
+genesisBlock, err := vm.NewBlock(ids.Empty, 0, genesisDataArr, time.Unix(0, 0))
+if err != nil {
+    log.Error(&quot;error while creating genesis block: %v&quot;, err)
+    return err
+}
+
+// Put genesis block to state
+if err := vm.state.PutBlock(genesisBlock); err != nil {
+    log.Error(&quot;error while saving genesis block: %v&quot;, err)
+    return err
+}
+
+// Accept the genesis block
+// Sets [vm.lastAccepted] and [vm.preferred]
+if err := genesisBlock.Accept(); err != nil {
+    return fmt.Errorf(&quot;error accepting genesis block: %w&quot;, err)
+}
+
+// Mark this vm's state as initialized, so we can skip initGenesis in further restarts
+if err := vm.state.SetInitialized(); err != nil {
+    return fmt.Errorf(&quot;error while setting db to initialized: %w&quot;, err)
+}
+
+// Flush VM's database to underlying db
+return vm.state.Commit()
+</code></pre>
+<p>}</p>
+<p>CreateHandlers 
+将Service中定义的handlers进行注册。
+// CreateHandlers returns a map where:
+// Keys: The path extension for this blockchain's API (empty in this case)
+// Values: The handler for the API
+// In this case, our blockchain has only one API, which we name timestamp,
+// and it has no path extension, so the API endpoint:
+// [Node IP]/ext/bc/[this blockchain's ID]
+// See API section in documentation for more information
+func (vm *VM) CreateHandlers() (map[string]*common.HTTPHandler, error) {
+server := rpc.NewServer()
+server.RegisterCodec(json.NewCodec(), &quot;application/json&quot;)
+server.RegisterCodec(json.NewCodec(), &quot;application/json;charset=UTF-8&quot;)
+// Name is &quot;timestampvm&quot;
+if err := server.RegisterService(&amp;Service{vm: vm}, Name); err != nil {
+return nil, err
+}
+return map[string]*common.HTTPHandler{
+&quot;&quot;: {
+Handler: server,
+},
+}, nil
+}</p>
+<p>CreateStaticHandlers
+注册定义在StaticService中的handlers。
+// CreateStaticHandlers returns a map where:
+// Keys: The path extension for this VM's static API
+// Values: The handler for that static API
+func (vm *VM) CreateStaticHandlers() (map[string]*common.HTTPHandler, error) {
+server := rpc.NewServer()
+server.RegisterCodec(json.NewCodec(), &quot;application/json&quot;)
+server.RegisterCodec(json.NewCodec(), &quot;application/json;charset=UTF-8&quot;)
+if err := server.RegisterService(&amp;StaticService{}, Name); err != nil {
+return nil, err
+}
+return map[string]*common.HTTPHandler{
+&quot;&quot;: {
+LockOptions: common.NoLock,
+Handler:     server,
+},
+}, nil
+}
+BuildBlock()
+用于创建新的区块并返回新区块。主要由共识引擎调用。
+// BuildBlock returns a block that this vm wants to add to consensus
+func (vm *VM) BuildBlock() (snowman.Block, error) {
+if len(vm.mempool) == 0 { // There is no block to be built
+return nil, errNoPendingBlocks
+}</p>
+<pre><code>// Get the value to put in the new block
+value := vm.mempool[0]
+vm.mempool = vm.mempool[1:]
+
+// Notify consensus engine that there are more pending data for blocks
+// (if that is the case) when done building this block
+if len(vm.mempool) &gt; 0 {
+    defer vm.NotifyBlockReady()
+}
+
+// Gets Preferred Block
+preferredBlock, err := vm.getBlock(vm.preferred)
+if err != nil {
+    return nil, fmt.Errorf(&quot;couldn't get preferred block: %w&quot;, err)
+}
+preferredHeight := preferredBlock.Height()
+
+// Build the block with preferred height
+newBlock, err := vm.NewBlock(vm.preferred, preferredHeight+1, value, time.Now())
+if err != nil {
+    return nil, fmt.Errorf(&quot;couldn't build block: %w&quot;, err)
+}
+
+// Verifies block
+if err := newBlock.Verify(); err != nil {
+    return nil, err
+}
+return newBlock, nil
+</code></pre>
+<p>}
+NotifyBlockReady
+属于帮助方法，用于向共识引擎发送信息（通过toEngine channel）
+// NotifyBlockReady tells the consensus engine that a new block
+// is ready to be created
+func (vm *VM) NotifyBlockReady() {
+select {
+case vm.toEngine &lt;- common.PendingTxs:
+default:
+vm.ctx.Log.Debug(&quot;dropping message to consensus engine&quot;)
+}
+}</p>
+<p>GetBlock
+通过blockID获取区块，
+// GetBlock implements the snowman.ChainVM interface
+func (vm *VM) GetBlock(blkID ids.ID) (snowman.Block, error) { return vm.getBlock(blkID) }</p>
+<p>func (vm *VM) getBlock(blkID ids.ID) (*Block, error) {
+// If block is in memory, return it.
+if blk, exists := vm.verifiedBlocks[blkID]; exists {
+return blk, nil
+}
+return vm.state.GetBlock(blkID)
+}</p>
+<p>proposeBlock
+proposeBlock会向mempool添加数据（交易），然后通知区块链共识层表示有一个新的区块内容已准备好，该方法一般会被API方法ProposeBlock调用。
+// proposeBlock appends [data] to [p.mempool].
+// Then it notifies the consensus engine
+// that a new block is ready to be added to consensus
+// (namely, a block with data [data])
+func (vm *VM) proposeBlock(data [dataLen]byte) {
+vm.mempool = append(vm.mempool, data)
+vm.NotifyBlockReady()
+}</p>
+<p>ParseBlock
+将[bytes]数据解析、还原成区块。
+// ParseBlock parses [bytes] to a snowman.Block
+// This function is used by the vm's state to unmarshal blocks saved in state
+// and by the consensus layer when it receives the byte representation of a block
+// from another node
+func (vm *VM) ParseBlock(bytes []byte) (snowman.Block, error) {
+// A new empty block
+block := &amp;Block{}</p>
+<pre><code>// Unmarshal the byte repr. of the block into our empty block
+_, err := Codec.Unmarshal(bytes, block)
+if err != nil {
+    return nil, err
+}
+
+// Initialize the block
+block.Initialize(bytes, choices.Processing, vm)
+
+if blk, err := vm.getBlock(block.ID()); err == nil {
+    // If we have seen this block before, return it with the most up-to-date
+    // info
+    return blk, nil
+}
+
+// Return the block
+return block, nil
+</code></pre>
+<p>}</p>
+<p>NewBlock
+根据送给的参数、数据创建一个新的区块。
+// NewBlock returns a new Block where:
+// - the block's parent is [parentID]
+// - the block's data is [data]
+// - the block's timestamp is [timestamp]
+func (vm *VM) NewBlock(parentID ids.ID, height uint64, data [dataLen]byte, timestamp time.Time) (*Block, error) {
+block := &amp;Block{
+PrntID: parentID,
+Hght:   height,
+Tmstmp: timestamp.Unix(),
+Dt:     data,
+}</p>
+<pre><code>// Get the byte representation of the block
+blockBytes, err := Codec.Marshal(CodecVersion, block)
+if err != nil {
+    return nil, err
+}
+
+// Initialize the block by providing it with its byte representation
+// and a reference to this VM
+block.Initialize(blockBytes, choices.Processing, vm)
+return block, nil
+</code></pre>
+<p>}</p>
+<p>SetPreference
+实现block.ChainVM,用于设置Preferred区块（ID）
+// SetPreference sets the block with ID [ID] as the preferred block
+func (vm *VM) SetPreference(id ids.ID) error {
+vm.preferred = id
+return nil
+}</p>
+<p>其它
+还有一部分功能接口在这个案例中没用到，但是也需要简单返回ni来实现完整的block.ChainVM接口。
+// Bootstrapped marks this VM as bootstrapped
+func (vm *VM) Bootstrapped() error { return nil }</p>
+<p>// Bootstrapping marks this VM as bootstrapping
+func (vm *VM) Bootstrapping() error { return nil }</p>
+<p>// Returns this VM's version
+func (vm *VM) Version() (string, error) {
+return Version.String(), nil
+}</p>
+<p>func (vm *VM) Connected(id ids.ShortID, nodeVersion version.Application) error {
+return nil // noop
+}</p>
+<p>func (vm *VM) Disconnected(id ids.ShortID) error {
+return nil // noop
+}</p>
+<p>// This VM doesn't (currently) have any app-specific messages
+func (vm *VM) AppGossip(nodeID ids.ShortID, msg []byte) error {
+return nil
+}</p>
+<p>// This VM doesn't (currently) have any app-specific messages
+func (vm *VM) AppRequest(nodeID ids.ShortID, requestID uint32, time time.Time, request []byte) error {
+return nil
+}</p>
+<p>// This VM doesn't (currently) have any app-specific messages
+func (vm *VM) AppResponse(nodeID ids.ShortID, requestID uint32, response []byte) error {
+return nil
+}</p>
+<p>// This VM doesn't (currently) have any app-specific messages
+func (vm *VM) AppRequestFailed(nodeID ids.ShortID, requestID uint32) error {
+return nil
+}</p>
+<p>// Health implements the common.VM interface
+func (vm *VM) HealthCheck() (interface{}, error) { return nil, nil }</p>
+<p>Factory
+工厂函数实现了工厂接口，用于返回一个VM实例。
+var _ vms.Factory = &amp;Factory{}</p>
+<p>// Factory ...
+type Factory struct{}</p>
+<p>// New ...
+func (f *Factory) New(*snow.Context) (interface{}, error) { return &amp;VM{}, nil }</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="chapter4.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="chapter4.2.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="chapter4.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="chapter4.2.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </body>
+</html>

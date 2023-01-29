@@ -1,0 +1,312 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>第七章 本地调试</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li><li class="chapter-item expanded "><a href="chapter3.html"><strong aria-hidden="true">3.</strong> 第三章 VM与AvalancheGo的连接</a></li><li class="chapter-item expanded "><a href="chapter4.html"><strong aria-hidden="true">4.</strong> 第四章 Subnet by go</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter4.1.html"><strong aria-hidden="true">4.1.</strong> 时间戳服务器的实现Virtual Machine</a></li><li class="chapter-item expanded "><a href="chapter4.2.html"><strong aria-hidden="true">4.2.</strong> Static API</a></li><li class="chapter-item expanded "><a href="chapter4.3.html"><strong aria-hidden="true">4.3.</strong> API</a></li><li class="chapter-item expanded "><a href="chapter4.4.html"><strong aria-hidden="true">4.4.</strong> 封装运行</a></li></ol></li><li class="chapter-item expanded "><a href="chapter5.html"><strong aria-hidden="true">5.</strong> 第五章 专用EVM开发</a></li><li class="chapter-item expanded "><a href="chapter6.html"><strong aria-hidden="true">6.</strong> 第六章 本地网络模拟ANR</a></li><li class="chapter-item expanded "><a href="chapter7.html" class="active"><strong aria-hidden="true">7.</strong> 第七章 本地调试</a></li><li class="chapter-item expanded "><a href="chapter8.html"><strong aria-hidden="true">8.</strong> 第八章 生产环境部署</a></li><li class="chapter-item expanded "><a href="SubnetByRust.html"><strong aria-hidden="true">9.</strong> Subnet by rust</a></li><li class="chapter-item expanded "><a href="SubnetByGo.html"><strong aria-hidden="true">10.</strong> Subnet by go</a></li><li class="chapter-item expanded "><a href="Go-Plugin/hashicorpGoPlugin.html"><strong aria-hidden="true">11.</strong> Hashicop Go Plugin</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title"></h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="第七章-本地调试"><a class="header" href="#第七章-本地调试">第七章 本地调试</a></h1>
+<p>生成配置
+这里我们可以利用Avalanche-CLI工具快速本地部署子网进行测试。
+输入命令：avalanche subnet create <subnetName> ,将尖括号内的bubnetName改为自己的子网名称即可。然后跟着提示选择子网类型，一类是基于EVM的以太坊EVM。一类是自定义的VM。这里我们先择Custom自定义。</p>
+<p>然后会提示要求输入子网生成文件和VM文件所在路径，即指定子网的初始化文件和vm的编译好的可执行文件。</p>
+<p>完成后可以通过avalanche subnet list命令查看目前已经配置好的子网信息：</p>
+<p>本地部署
+avalanche subnet deploy <subnetName>命令开始部署子网</p>
+<p>根据提示，先择Local Network</p>
+<p>njz@DESKTOP-K4L8TPO:~$ avalanche subnet list
++--------------+--------------+----------+--------+----------+
+|    SUBNET    |    CHAIN     | CHAIN ID |  TYPE  | DEPLOYED |
++--------------+--------------+----------+--------+----------+
+| mytestsubnet | mytestsubnet |          | Custom | No       |
++--------------+--------------+----------+--------+----------+
+njz@DESKTOP-K4L8TPO:~$</p>
+<p>后面就可以根据我们区块链的功能进行进一步测试。</p>
+<p>Postman安装配置
+为了方便测试调试子网区块链的API，这里我们利用Postman调试工具来进行各个API调试。可以用于节点API、子网API、甚至AvalancheNetworkRunner的API。
+安装
+。。。。。</p>
+<p>导入Collections</p>
+<p>切换到Import From Link选项，在输入框中输入avalanche官方提供的地址链接：
+https://raw.githubusercontent.com/ava-labs/avalanche-postman-collection/master/Avalanche.postman_collection.json
+之后点击Import按钮，将文件导入。左侧Collections一栏将会显示所有的Collections。</p>
+<p>导入Environment</p>
+<p>切换到Import From Link选项，在输入框中输入avalanche官方提供的地址链接：
+https://raw.githubusercontent.com/ava-labs/avalanche-postman-collection/master/Example-Avalanche-Environment.postman_environment.json
+之后点击Import按钮，将文件导入
+在确保avalanche-network-runner server开启之后，我们就可以通过postman方便地对avalanche-network-runner 进行操作。例如查看一个节点的运行情况，通过postman调用health API：</p>
+<p>启动本地网络avalanche-network-runner</p>
+<p>运行启动命令启动ANR服务：
+avalanche-network-runner server <br />
+--log-level debug <br />
+--port=&quot;:8080&quot; <br />
+--grpc-gateway-port=&quot;:8081&quot;</p>
+<p>然后通过API启动本地网络。需要另外启动新的终端运行其他命令。也可以通过postman快速实现调用，同时方便分析返回的数据。</p>
+<p>通过Postman启动本地网络（5 nodes）</p>
+<p>通过Health API 查看目前节点运行情况</p>
+<p>Health API 返回的内容比较多，如下：
+{
+&quot;clusterInfo&quot;: {
+&quot;nodeNames&quot;: [
+&quot;node1&quot;,
+&quot;node2&quot;,
+&quot;node3&quot;,
+&quot;node4&quot;,
+&quot;node5&quot;
+],
+&quot;nodeInfos&quot;: {
+&quot;node1&quot;: {
+&quot;name&quot;: &quot;node1&quot;,
+&quot;execPath&quot;: &quot;./avalanchego/avalanchego&quot;,
+&quot;uri&quot;: &quot;http://127.0.0.1:43767&quot;,
+&quot;id&quot;: &quot;NodeID-7Xhw2mDxuDS44j42TCB6U5579esbSt3Lg&quot;,
+&quot;logDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node1/log&quot;,
+&quot;dbDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node1/db-dir&quot;,
+&quot;pluginDir&quot;: &quot;avalanchego/plugins&quot;,
+&quot;whitelistedSubnets&quot;: &quot;&quot;,
+&quot;config&quot;: &quot;&quot;
+},
+&quot;node2&quot;: {
+&quot;name&quot;: &quot;node2&quot;,
+&quot;execPath&quot;: &quot;./avalanchego/avalanchego&quot;,
+&quot;uri&quot;: &quot;http://127.0.0.1:25330&quot;,
+&quot;id&quot;: &quot;NodeID-MFrZFVCXPv5iCn6M9K6XduxGTYp891xXZ&quot;,
+&quot;logDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node2/log&quot;,
+&quot;dbDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node2/db-dir&quot;,
+&quot;pluginDir&quot;: &quot;avalanchego/plugins&quot;,
+&quot;whitelistedSubnets&quot;: &quot;&quot;,
+&quot;config&quot;: &quot;&quot;
+},
+&quot;node3&quot;: {
+&quot;name&quot;: &quot;node3&quot;,
+&quot;execPath&quot;: &quot;./avalanchego/avalanchego&quot;,
+&quot;uri&quot;: &quot;http://127.0.0.1:13212&quot;,
+&quot;id&quot;: &quot;NodeID-NFBbbJ4qCmNaCzeW7sxErhvWqvEQMnYcN&quot;,
+&quot;logDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node3/log&quot;,
+&quot;dbDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node3/db-dir&quot;,
+&quot;pluginDir&quot;: &quot;avalanchego/plugins&quot;,
+&quot;whitelistedSubnets&quot;: &quot;&quot;,
+&quot;config&quot;: &quot;&quot;
+},
+&quot;node4&quot;: {
+&quot;name&quot;: &quot;node4&quot;,
+&quot;execPath&quot;: &quot;./avalanchego/avalanchego&quot;,
+&quot;uri&quot;: &quot;http://127.0.0.1:28389&quot;,
+&quot;id&quot;: &quot;NodeID-GWPcbFJZFfZreETSoWjPimr846mXEKCtu&quot;,
+&quot;logDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node4/log&quot;,
+&quot;dbDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node4/db-dir&quot;,
+&quot;pluginDir&quot;: &quot;avalanchego/plugins&quot;,
+&quot;whitelistedSubnets&quot;: &quot;&quot;,
+&quot;config&quot;: &quot;&quot;
+},
+&quot;node5&quot;: {
+&quot;name&quot;: &quot;node5&quot;,
+&quot;execPath&quot;: &quot;./avalanchego/avalanchego&quot;,
+&quot;uri&quot;: &quot;http://127.0.0.1:62510&quot;,
+&quot;id&quot;: &quot;NodeID-P7oB2McjBGgW2NXXWVYjV8JEDFoW9xDE5&quot;,
+&quot;logDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node5/log&quot;,
+&quot;dbDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350/node5/db-dir&quot;,
+&quot;pluginDir&quot;: &quot;avalanchego/plugins&quot;,
+&quot;whitelistedSubnets&quot;: &quot;&quot;,
+&quot;config&quot;: &quot;&quot;
+}
+},
+&quot;pid&quot;: 401,
+&quot;rootDataDir&quot;: &quot;/tmp/network-runner-root-data_20221023_115350&quot;,
+&quot;healthy&quot;: true,
+&quot;attachedPeerInfos&quot;: {},
+&quot;customChainsHealthy&quot;: false,
+&quot;customChains&quot;: {},
+&quot;subnets&quot;: []
+}
+}
+从返回的数据可以查看每个节点的运行情况。
+子网API测试
+TimestampVM是一个可以将重要信息进行链上保存，并有永久不可以修改的特点。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="chapter6.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="chapter8.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="chapter6.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="chapter8.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </body>
+</html>

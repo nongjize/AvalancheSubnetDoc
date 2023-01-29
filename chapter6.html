@@ -1,0 +1,363 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>第六章 本地网络模拟ANR</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li><li class="chapter-item expanded "><a href="chapter3.html"><strong aria-hidden="true">3.</strong> 第三章 VM与AvalancheGo的连接</a></li><li class="chapter-item expanded "><a href="chapter4.html"><strong aria-hidden="true">4.</strong> 第四章 Subnet by go</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter4.1.html"><strong aria-hidden="true">4.1.</strong> 时间戳服务器的实现Virtual Machine</a></li><li class="chapter-item expanded "><a href="chapter4.2.html"><strong aria-hidden="true">4.2.</strong> Static API</a></li><li class="chapter-item expanded "><a href="chapter4.3.html"><strong aria-hidden="true">4.3.</strong> API</a></li><li class="chapter-item expanded "><a href="chapter4.4.html"><strong aria-hidden="true">4.4.</strong> 封装运行</a></li></ol></li><li class="chapter-item expanded "><a href="chapter5.html"><strong aria-hidden="true">5.</strong> 第五章 专用EVM开发</a></li><li class="chapter-item expanded "><a href="chapter6.html" class="active"><strong aria-hidden="true">6.</strong> 第六章 本地网络模拟ANR</a></li><li class="chapter-item expanded "><a href="chapter7.html"><strong aria-hidden="true">7.</strong> 第七章 本地调试</a></li><li class="chapter-item expanded "><a href="chapter8.html"><strong aria-hidden="true">8.</strong> 第八章 生产环境部署</a></li><li class="chapter-item expanded "><a href="SubnetByRust.html"><strong aria-hidden="true">9.</strong> Subnet by rust</a></li><li class="chapter-item expanded "><a href="SubnetByGo.html"><strong aria-hidden="true">10.</strong> Subnet by go</a></li><li class="chapter-item expanded "><a href="Go-Plugin/hashicorpGoPlugin.html"><strong aria-hidden="true">11.</strong> Hashicop Go Plugin</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title"></h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="第六章-本地网络模拟anr"><a class="header" href="#第六章-本地网络模拟anr">第六章 本地网络模拟ANR</a></h1>
+<p>不同于传统常规软件系统，区块链开发调试一般要涉及更复杂的环境。所以Avalanche官方提供了一个本地测试环境Avalanche Network Runner (ANR)， 一个本地运行的Avalanche 网络，用于开发测试、调试。也可以直接在本地运行多个AvalancheGo实例，组成一个Avalanche网络，但是会比较麻烦，工作量相对使用ANR会大很多，使用起来也不方便。在子网产品发布之前（在部署在主网和Fuji测试网之前），都应该在本地ANR上经过充分测试和验证。
+ANR运行原理
+Run ANR as a binary。
+用户通过RPC对本地ANR网络进行操作：启动网络、建立一个subnet、添加nodes,删除nodes等。也可以通过API调用来做这些操作。然后，每个模拟节点都可以对外暴露api,来做一般的节点所能做的操作。</p>
+<p>abc</p>
+<p>abc
+案例</p>
+<h2 id="anr安装"><a class="header" href="#anr安装">ANR安装</a></h2>
+<p>源码安装的话需要先安装golang:
+cd ${HOME}/go/src/github.com/ava-labs/avalanche-network-runner
+go install -v ./cmd/avalanche-network-runner</p>
+<p>此外，ANR本地模拟节点运行的时候需要用到AVALANCHEGO_EXEC_PATH（即avalanchego程序运行的路径）</p>
+<h2 id="anr使用说明"><a class="header" href="#anr使用说明">ANR使用说明</a></h2>
+<p>ANR运行之后，就可以通过API调用来控制操作ANR。在启动运行ANR后，需要另外启动一个终端进行发送调用操作。</p>
+<h2 id="anr启动服务"><a class="header" href="#anr启动服务">ANR启动服务</a></h2>
+<p>运行下面命令启动服务，通过port标签指定主gRPC的端口，通过grpc-gatewar-port标签指定gRPC gateway的端口，即可以通过http请求。</p>
+<p>avalanche-network-runner server <br />
+--log-level debug <br />
+--port=&quot;:8080&quot; <br />
+--grpc-gateway-port=&quot;:8081&quot;</p>
+<p>运行上述命令之后，终端将会处于占用运行状态，通过CTRL+C关闭终端及ANR服务。所以如果要调用API，需要另启终端。
+当调用使用二进制程序进行命令的调用时，由主gRPC端口接收处理，在这个模式下，命令是通过编译好的可执行程序进行调用的。另外，也可以通过普通的http来发送调用API，这个时候就不需要通过可执行二进制文件，这个时候是向grpc-gateway-port端口发送请求。下面的每个API调用有两种方法的说明。</p>
+<h2 id="anr请求调用"><a class="header" href="#anr请求调用">ANR请求调用</a></h2>
+<h3 id="1ping已启动的server"><a class="header" href="#1ping已启动的server">1.ping已启动的server</a></h3>
+<p>grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/ping -d ''
+grpc方式：
+avalanche-network-runner ping <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot;</p>
+<h3 id="2启动一个有5个节点的avalanche网络"><a class="header" href="#2启动一个有5个节点的avalanche网络">2.启动一个有5个节点的Avalanche网络</a></h3>
+<p>grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/control/start -d '{&quot;execPath&quot;:&quot;'${AVALANCHEGO_EXEC_PATH}'&quot;,&quot;numNodes&quot;:5}'
+grpc方式：
+avalanche-network-runner control start <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot; <br />
+--number-of-nodes=5 <br />
+--avalanchego-path ${AVALANCHEGO_EXEC_PATH}</p>
+<p>也可以通过添加更多选项对网络进行控制。</p>
+<h3 id="3等待查询节点运行情况"><a class="header" href="#3等待查询节点运行情况">3.等待查询节点运行情况</a></h3>
+<p>grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/control/health -d ''
+grpc方式：
+avalanche-network-runner control health <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot;
+返回的数据会比较大，因为其包含了整个节点集群的状态信息。在最后，会有“healthy:true”的信息，说明节点集群是正常的，否者将会显示“healthy:false”。</p>
+<h3 id="4获取所有节点的api-endpoints"><a class="header" href="#4获取所有节点的api-endpoints">4.获取所有节点的API endpoints</a></h3>
+<p>grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/control/uris -d ''
+grpc方式：
+avalanche-network-runner control uris <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot;</p>
+<h3 id="5直接从server查询集群的状态"><a class="header" href="#5直接从server查询集群的状态">5.直接从server查询集群的状态</a></h3>
+<p>grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/control/status -d ''
+grpc方式：
+avalanche-network-runner control status <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot;
+流式
+avalanche-network-runner control <br />
+--request-timeout=3m <br />
+stream-status <br />
+--push-interval=5s <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot;</p>
+<h3 id="6节点的移除停止"><a class="header" href="#6节点的移除停止">6.节点的移除/停止</a></h3>
+<p>grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/control/removenode -d '{&quot;name&quot;:&quot;node5&quot;}'
+grpc方式：
+avalanche-network-runner control remove-node node5 <br />
+--request-timeout=3m <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot; </p>
+<h3 id="7重启节点"><a class="header" href="#7重启节点">7.重启节点</a></h3>
+<p>这里我们以重新启动node1为例，需要说明的是所有的节点都以node+n的方式命名，官方建议以这种方式命名以免出现其他问题。</p>
+<h1 id="eg-homegosrcgithubcomava-labsavalanchegobuildavalanchego"><a class="header" href="#eg-homegosrcgithubcomava-labsavalanchegobuildavalanchego">e.g., ${HOME}/go/src/github.com/ava-labs/avalanchego/build/avalanchego</a></h1>
+<p>AVALANCHEGO_EXEC_PATH=&quot;avalanchego&quot;
+grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/control/restartnode -d '{&quot;name&quot;:&quot;node1&quot;,&quot;execPath&quot;:&quot;'${AVALANCHEGO_EXEC_PATH}'&quot;}'
+grpc方式：
+avalanche-network-runner control restart-node node1 <br />
+--request-timeout=3m <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot; <br />
+--avalanchego-path ${AVALANCHEGO_EXEC_PATH}
+8.添加节点
+在这个案例中，我们将添加一个名为node99的节点。</p>
+<h1 id="eg-homegosrcgithubcomava-labsavalanchegobuildavalanchego-1"><a class="header" href="#eg-homegosrcgithubcomava-labsavalanchegobuildavalanchego-1">e.g., ${HOME}/go/src/github.com/ava-labs/avalanchego/build/avalanchego</a></h1>
+<p>AVALANCHEGO_EXEC_PATH=&quot;avalanchego&quot;
+grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/control/addnode -d '{&quot;name&quot;:&quot;node99&quot;,&quot;execPath&quot;:&quot;'${AVALANCHEGO_EXEC_PATH}'&quot;}'
+grpc方式：
+avalanche-network-runner control add-node node99 <br />
+--request-timeout=3m <br />
+--endpoint=&quot;0.0.0.0:8080&quot; <br />
+--avalanchego-path ${AVALANCHEGO_EXEC_PATH}
+也可以为节点添加其他配置参数，--node-config允许分配特定的avalanchego配置参数给新加入的节点。
+--node-config '{&quot;index-enabled&quot;:false, &quot;api-admin-enabled&quot;:true,&quot;network-peer-list-gossip-frequency&quot;:&quot;300ms&quot;}'</p>
+<p>9.结束节点集群
+grpc-gateway方式：
+curl -X POST -k http://localhost:8081/v1/control/stop -d ''
+grpc方式：
+avalanche-network-runner control stop <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot;
+需要说明的是，运行这些命令之后，之前启动server的终端还是需要通过Ctrl-C来关闭释放shell.
+在ANR上部署Subets测试
+abc
+blobvm子网区块链部署
+定制的区块链需要自定义VM，这在本章节，我们将部署一个定制VM到一个子网上，整个过程于部署subnet-evm大同小异。我们用到的vm是blobvm（也可以用上一章已完成的TimestampVM）。blobvm是一个支持内容寻址存储的VM，可以通过兼容EIP-712钱包存储任意K/V数据。具体步骤如下。
+按照上一小节介绍的方式，安装并运行ANR RPC server，通过下面的命令确保服务正常运行：
+curl -X POST -k http://localhost:8081/v1/ping -d ''</p>
+<p>然后需要通过工具subnet-cli 创建VM ID：
+subnet-cli create VMID blobvm</p>
+<h1 id="km6h4lye3aceu1mb2ung6ubzaidaalzzpvrbx8zn3hxf6avd8"><a class="header" href="#km6h4lye3aceu1mb2ung6ubzaidaalzzpvrbx8zn3hxf6avd8">kM6h4LYe3AcEU1MB2UNg6ubzAiDAALZzpVrbX8zn3hXF6Avd8</a></h1>
+<p>创建blobvm，先克隆git仓库，然后通过自带脚本build:
+git clone https://github.com/ava-labs/blobvm ${HOME}/go/src/github.com/ava-labs/blobvm
+cd ${HOME}/go/src/github.com/ava-labs/blobvm
+go build -v <br />
+-o ${HOME}/go/src/github.com/ava-labs/avalanchego/build/plugins/kM6h4LYe3AcEU1MB2UNg6ubzAiDAALZzpVrbX8zn3hXF6Avd8 <br />
+./cmd/blobvm</p>
+<p>最后确认是否正确编译：
+find ${HOME}/go/src/github.com/ava-labs/avalanchego/build</p>
+<h1 id="should-yield-something-like"><a class="header" href="#should-yield-something-like">should yield something like:</a></h1>
+<h1 id="build"><a class="header" href="#build">.../build</a></h1>
+<h1 id="buildplugins"><a class="header" href="#buildplugins">.../build/plugins</a></h1>
+<h1 id="buildpluginskm6h4lye3aceu1mb2ung6ubzaidaalzzpvrbx8zn3hxf6avd8"><a class="header" href="#buildpluginskm6h4lye3aceu1mb2ung6ubzaidaalzzpvrbx8zn3hxf6avd8">.../build/plugins/kM6h4LYe3AcEU1MB2UNg6ubzAiDAALZzpVrbX8zn3hXF6Avd8</a></h1>
+<h1 id="buildpluginsevm"><a class="header" href="#buildpluginsevm">.../build/plugins/evm</a></h1>
+<h1 id="buildavalanchego"><a class="header" href="#buildavalanchego">.../build/avalanchego</a></h1>
+<p>每个VM都需要一个genesis 文件，对于blobvm，genesis文件很简单，git仓库中有一个辅助工具可以创建该文件：</p>
+<h1 id="generate-the-genesis-for-the-custom-vm"><a class="header" href="#generate-the-genesis-for-the-custom-vm">generate the genesis for the custom VM</a></h1>
+<p>cd ${HOME}/go/src/github.com/ava-labs/blobvm
+go install -v ./cmd/blob-cli
+echo &quot;[]&quot; &gt; /tmp/alloc.json
+blob-cli genesis 1 /tmp/alloc.json --genesis-file /tmp/blobvm.genesis.json</p>
+<h1 id="print-contents"><a class="header" href="#print-contents">print contents</a></h1>
+<p>cat /tmp/blobvm.genesis.json</p>
+<p>为方便使用，设置环境变量：</p>
+<h1 id="replace-execpath-with-the-path-to-avalanchego-on-your-machine"><a class="header" href="#replace-execpath-with-the-path-to-avalanchego-on-your-machine">replace execPath with the path to AvalancheGo on your machine</a></h1>
+<p>AVALANCHEGO_EXEC_PATH=<br />
+&quot;${HOME}/go/src/github.com/ava-labs/avalanchego/build/avalanchego&quot;
+AVALANCHEGO_PLUGIN_PATH=<br />
+&quot;${HOME}/go/src/github.com/ava-labs/avalanchego/build/plugins&quot;</p>
+<p>接下来启动节点，这个案例里启动时传入一些自定义的参数，包含了区块genesis和VM名称：
+curl -X POST -k http://localhost:8081/v1/control/start -d '{
+&quot;execPath&quot;:&quot;'${AVALANCHEGO_EXEC_PATH}'&quot;,
+&quot;numNodes&quot;:5,
+&quot;logLevel&quot;:&quot;INFO&quot;,
+&quot;pluginDir&quot;:&quot;'${AVALANCHEGO_PLUGIN_PATH}'&quot;,
+&quot;customVms&quot;:{&quot;blobvm&quot;:&quot;/tmp/blobvm.genesis.json&quot;}}'
+也可以grpc方式：
+avalanche-network-runner control start <br />
+--log-level debug <br />
+--endpoint=&quot;0.0.0.0:8080&quot; <br />
+--avalanchego-path ${AVALANCHEGO_EXEC_PATH} <br />
+--plugin-dir ${AVALANCHEGO_PLUGIN_PATH} <br />
+--blockchain-specs '[{&quot;vm_name&quot;:&quot;blobvm&quot;,&quot;genesis&quot;:&quot;/tmp/blobvm.genesis.json&quot;}]'</p>
+<p>到此，就完成了blobvm在ANR上的部署。我们就可以通过下面的命令来查看整个网络的运行状态：</p>
+<h1 id="to-get-cluster-information-including-blockchain-id"><a class="header" href="#to-get-cluster-information-including-blockchain-id">to get cluster information including blockchain ID</a></h1>
+<p>curl -X POST -k http://localhost:8081/v1/control/status -d ''</p>
+<p>后面就可以根据我们区块链的功能进行进一步测试。</p>
+<p>Timestamp子网部署
+根据VM开发部分的介绍，那里我们得到了一个已编译好的VM可以执行二进制文件。</p>
+<p>abc</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="chapter5.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="chapter7.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="chapter5.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="chapter7.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </body>
+</html>

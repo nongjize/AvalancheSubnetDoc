@@ -1,0 +1,261 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>第八章 生产环境部署</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li><li class="chapter-item expanded "><a href="chapter3.html"><strong aria-hidden="true">3.</strong> 第三章 VM与AvalancheGo的连接</a></li><li class="chapter-item expanded "><a href="chapter4.html"><strong aria-hidden="true">4.</strong> 第四章 Subnet by go</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter4.1.html"><strong aria-hidden="true">4.1.</strong> 时间戳服务器的实现Virtual Machine</a></li><li class="chapter-item expanded "><a href="chapter4.2.html"><strong aria-hidden="true">4.2.</strong> Static API</a></li><li class="chapter-item expanded "><a href="chapter4.3.html"><strong aria-hidden="true">4.3.</strong> API</a></li><li class="chapter-item expanded "><a href="chapter4.4.html"><strong aria-hidden="true">4.4.</strong> 封装运行</a></li></ol></li><li class="chapter-item expanded "><a href="chapter5.html"><strong aria-hidden="true">5.</strong> 第五章 专用EVM开发</a></li><li class="chapter-item expanded "><a href="chapter6.html"><strong aria-hidden="true">6.</strong> 第六章 本地网络模拟ANR</a></li><li class="chapter-item expanded "><a href="chapter7.html"><strong aria-hidden="true">7.</strong> 第七章 本地调试</a></li><li class="chapter-item expanded "><a href="chapter8.html" class="active"><strong aria-hidden="true">8.</strong> 第八章 生产环境部署</a></li><li class="chapter-item expanded "><a href="SubnetByRust.html"><strong aria-hidden="true">9.</strong> Subnet by rust</a></li><li class="chapter-item expanded "><a href="SubnetByGo.html"><strong aria-hidden="true">10.</strong> Subnet by go</a></li><li class="chapter-item expanded "><a href="Go-Plugin/hashicorpGoPlugin.html"><strong aria-hidden="true">11.</strong> Hashicop Go Plugin</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title"></h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="第八章-生产环境部署"><a class="header" href="#第八章-生产环境部署">第八章 生产环境部署</a></h1>
+<p>在完成Subnet本地环境测试后，最终我们的目的是将区块链部署到生产环境下（即公链环境下）。在生产环境中运行以下子网区块链相对于于本地环境，要涉及到的内容要很很多，需要考虑实际应用的贴合度，正常运行的维护，升级，还要考虑到现在的对抗破环等问题。
+实际工程中，不同的子网需要考虑的环境因素肯定不一样，两个不同应用类别、不同业务逻辑的子网在部署流程上可能完全不同，然而，本文将尽可能地介绍最广泛存在的共性问题，希望能够针对大家都会遇到地问题建立一个感官概念。</p>
+<h2 id="节点配置"><a class="header" href="#节点配置">节点配置</a></h2>
+<p>Avalanche节点是运行子网的实际具体运行单元。最基本地，子网需要验证节点，用可能还需要节点能够提供RPC服务，检索、查询等功能，这些都是通过Avalanche节点程序来实现。运行一个节点本质上就是在一个服务器上运行一个AvalancheGo实例。
+对于服务程序所在地操作系统，原则上是没有限制的，可以是MacOS,，可以是Windows，但是强烈建议linux,因为工具的原因，很多工具都是面向liunx系统。
+至于服务器的部署位置，这个可以是个人电脑、专业托管机房、也可以是云服务器。</p>
+<h2 id="验证节点数量"><a class="header" href="#验证节点数量">验证节点数量</a></h2>
+<p>子网的验证节点的数量是一个非常关键的参数，为了子网的稳定和最大去中心化，验证节点要尽量的多。为保证子网稳定，建议最低要有5个验证节点。
+节点的同步
+一切软件硬件准备就绪后，节点需要区块同步，即需要将创世区块到目前的区块的所有数据全部拷贝到本节点,这个过程将会十分耗时，如果一个节点要全部同步需要超过一周的时间（而且这个时间将随着区块的不断增长而增长）。此外也有其他同步方法可以缩短时间，这个取决实际条件。</p>
+<h2 id="世界态的同步"><a class="header" href="#世界态的同步">世界态的同步</a></h2>
+<p>一个验证节点可以不同步整个区块链的交易历史也可以正常的运行验证，这个时候只需要同步世界态State即可。这里得益于Avalanche共识协议的机制，共识的基础不是根据完全根据过去的区块以及类似比特币的区块链。所以可以快速同步时间态然后运行验证程序。</p>
+<h2 id="数据库拷贝"><a class="header" href="#数据库拷贝">数据库拷贝</a></h2>
+<p>另外一个数据同步的方法就是直接拷贝数据库。因为各个节点的数据库都是相同的，所以我们可以从其中某一个节点直接拷贝整个区块链的数据库，这个不同于整个网络同步，我们可以只与某一个节点链接拷贝。</p>
+<h2 id="子网部署"><a class="header" href="#子网部署">子网部署</a></h2>
+<p>软硬件、数据都准备好之后，下一步就是实质性部署Subnet，这里为简化部署流程，Avalanche官方提供了一个工具“Subnet-Cli”,具体的Subnet-Clic使用方法可以另查资料，下面的教程中会根据本案例需要的部分进行说明。</p>
+<h2 id="ledger-硬件钱包"><a class="header" href="#ledger-硬件钱包">Ledger 硬件钱包</a></h2>
+<p>目前的子网，一些关键的内容管理操作需要一定的权限，区块链领域一部通过私钥来进行授权管理，包括验证节点的添加，节点的配置等。谁拥有控制该子网的私钥，谁就可以拥有整个私钥的控制权，以及子网的运行方式。因此如果子网是需要被控制的，这个私钥的管理就显得非常重要。所以这里引入了一个硬件钱包来管理私钥——Ledger。区块链领域，钱包的核心作用其实就是保管私钥，以安全的方式用该私钥来进行数字签名或者其他操作。
+为了避免遗失私钥或者泄露私钥导致灾难性的后果，我们利用Ledger来管理私钥。上小结所讲的Subnet-Cli也支持Ledger操作。</p>
+<h2 id="genesis文件"><a class="header" href="#genesis文件">Genesis文件</a></h2>
+<p>涉及到子网的一些非常重要的参数一般保存在Genesis文件中，该文件以json格式的方式组织数据，人类可读。genesis文件部分在前面的章节已有过介绍，在你准备部署Subnet之前需要准备好genesis文件。</p>
+<h2 id="subnet-cli-引导"><a class="header" href="#subnet-cli-引导">Subnet-CLI 引导</a></h2>
+<p>创建Subnet具体步骤如下：
+创建VMID
+创建Subnet
+在子网上创建区块链
+向子网中添加验证节点validators.
+为了简化流程，Subnet-CLI以wizard导向的方式来完成上述的工作流程，这样避免了一些潜在的错误，并将需要完成的任务安先后顺序流程化。在运行Subnet-CLI wizard之前，需要将VMID、验证节点validator的NodeIDs准备好，
+Subnet-CLI wizard使用命令：
+subnet-cli wizard <br />
+--ledger <br />
+--node-ids=NodeID-741aqvs6R4iuHDyd1qT1NrFTmsgu78dc4,NodeID-K7Y79oAmBntAcdkyY1CLxCim8QuqcZbBp,NodeID-C3EY6u4v7DDi6YEbYf1wmXdvkEFXYuXNW,NodeID-AiLGeqQfh9gZY3Y8wLMD15tuJtsJHq5Qi <br />
+--vm-genesis-path=prod-genesis.json <br />
+--vm-id=tGas3T58KzdjLHhBDMnH2TvrddhqTji5iZAMZ3RXs2NLpSnhH <br />
+--chain-name=prodSubnet
+wizard完成以后，subnet就已经创建部署完成，就可以通过Subnet浏览器查看到相关信息。部署完成以后，也可以通过Subnet-CLI来进行相关操作，比如添加新的validator和刷新过期子网等等。</p>
+<h2 id="验证节点的配置"><a class="header" href="#验证节点的配置">验证节点的配置</a></h2>
+<p>相对于单独运行Avalanche节点，运行子网验证节点需要考虑更多的因素具体如下。</p>
+<h3 id="子网白名单"><a class="header" href="#子网白名单">子网白名单</a></h3>
+<p>加入子网的验证节点需要两个先决条件：
+必须是主网的验证节点
+是在子网的白名单内
+Avalanche主网验证节点这个先决条件目前只是AvalancheGo节点程序代码层面的要求，并非共识协议的要求，也没有代币经济学激励机制来鼓励这样做。正常规律来说，这种代码级别的限制、要求比较牵强。后续可能会根据生态的发展和更多的应用落地有所改变。
+子网同步，需要添加命令行选项--whitelisted-subnets ，或者在节点配置文件中（ .avalanchego/configs/node.json     ）添加配置键 whitelisted-subnets进行配置，一个节点可以同步多个子网区块链的数据，所以，如果要同步多个子网区块链，只需将每个子网ID逗号隔开即可。示例如下：
+{
+&quot;dynamic-public-ip&quot;: &quot;opendns&quot;,
+&quot;http-host&quot;: &quot;&quot;,
+&quot;whitelisted-subnets&quot;: &quot;28nrH5T2BMvNrWecFcV3mfccjs6axM1TVyqe79MCv2Mhs8kxiY,Ai42MkKqk8yjXFCpoHXw7rdTWSHiKEMqh5h8gbxwjgkCUfkrk&quot;
+}
+但是这里只是配置文件添加了子网，还需要将子网VM放到plugin路径中。需要注意的是二进制VM可执行文件的命名需要与上文中通过Subnet-CLI生成的VMID相同。</p>
+<h2 id="子网启动"><a class="header" href="#子网启动">子网启动</a></h2>
+<p>VM安装完成并添加了子网白名单之后，就可以开始同步子网区块数据了。重新启动Avalanche节点程序，并观察日子输出，会得到类似的结果：
+Jul 30 18:26:31 node-fuji avalanchego[1728308]: [07-30|18:26:31.422] INFO chains/manager.go:262 creating chain:
+Jul 30 18:26:31 node-fuji avalanchego[1728308]:     ID: 2ebCneCbwthjQ1rYT41nhd7M76Hc6YmosMAQrTFhBq8qeqh6tt
+Jul 30 18:26:31 node-fuji avalanchego[1728308]:     VMID:srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy
+这表示节点已经识别到子网，并尝试初始化并同步数据。如果该子网已经存在交易数据的话，将会需要一定的时间，具体情况看子网历史数据大小而定。最终，同步结束，log会显示如下信息：
+Jul 30 18:27:21 node-fuji avalanchego[1728308]: [07-30|18:27:21.055] INFO &lt;2ebCneCbwthjQ1rYT41nhd7M76Hc6YmosMAQrTFhBq8qeqh6tt Chain&gt; snowman/transitive.go:333 consensus starting with J5wjmotMCrM2DKxeBTBPfwgCPpvsjtuqWNozLog2TomTjSuGK as the last accepted block
+这个表示节点已经完成了启动，同步了区块数据。如果节点是子网的验证节点，其将开始验证子网上的交易数据。</p>
+<h2 id="状态监控"><a class="header" href="#状态监控">状态监控</a></h2>
+<p>在同步子网的时候，可以通过RPC调用来查看区块状态。如果想要更深入了解子网的操作情况，可以通过区块日志去进一步查看。默认情况下，区块日志存放在~/.avalanchego /logs/ChainID.log，其中ChainID是指具体的区块链的ID。
+此外还可以通过更专业的工具来对节点的情况进行监控，比如Prometheus+Grafana监控系统，带有定制的仪表dashboards用于显现常规的节点操作。还有一些专门用于子网节点数据显示。</p>
+<h2 id="验证管理"><a class="header" href="#验证管理">验证管理</a></h2>
+<p>在Avalanche中，所有的验证节点都是有时间限制的，时间跨度可以从两周到一年不等，因此，子网验证节点的验证时间周期必须在主网验证周期以内。这就意味着所有的节点的有效期都是周期性的，过了验证周期就需要重新发起验证交易以加入主网验证节点集群。这个是由于Avalanche共识所基于POS的原因。
+为了避免所有节点的验证周期同时过期，建议所有的节点验证周期相互错开，错开的时间最少是一天以上。</p>
+<h2 id="总结"><a class="header" href="#总结">总结</a></h2>
+<p>运行一个子网不是一个一次性的工作，而是运行一个7*24全年无休的服务。所以最好有健壮的日志系统，监控系统，以及通知机制。不断的对节点及子网的健康状态进行检查，并在问题刚刚发生的时候及时通知到。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="chapter7.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="SubnetByRust.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="chapter7.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="SubnetByRust.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </body>
+</html>
