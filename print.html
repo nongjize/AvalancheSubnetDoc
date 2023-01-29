@@ -81,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li><li class="chapter-item expanded "><a href="chapter3.html"><strong aria-hidden="true">3.</strong> 第三章 VM与AvalancheGo的连接</a></li><li class="chapter-item expanded "><a href="chapter4.html"><strong aria-hidden="true">4.</strong> 第四章 Subnet by go</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter4.1.html"><strong aria-hidden="true">4.1.</strong> 时间戳服务器的实现Virtual Machine</a></li><li class="chapter-item expanded "><a href="chapter4.2.html"><strong aria-hidden="true">4.2.</strong> Static API</a></li><li class="chapter-item expanded "><a href="chapter4.3.html"><strong aria-hidden="true">4.3.</strong> API</a></li><li class="chapter-item expanded "><a href="chapter4.4.html"><strong aria-hidden="true">4.4.</strong> 封装运行</a></li></ol></li><li class="chapter-item expanded "><a href="chapter5.html"><strong aria-hidden="true">5.</strong> 第五章 专用EVM开发</a></li><li class="chapter-item expanded "><a href="chapter6.html"><strong aria-hidden="true">6.</strong> 第六章 本地网络模拟ANR</a></li><li class="chapter-item expanded "><a href="chapter7.html"><strong aria-hidden="true">7.</strong> 第七章 本地调试</a></li><li class="chapter-item expanded "><a href="chapter8.html"><strong aria-hidden="true">8.</strong> 第八章 生产环境部署</a></li><li class="chapter-item expanded "><a href="SubnetByRust.html"><strong aria-hidden="true">9.</strong> Subnet by rust</a></li><li class="chapter-item expanded "><a href="SubnetByGo.html"><strong aria-hidden="true">10.</strong> Subnet by go</a></li><li class="chapter-item expanded "><a href="Go-Plugin/hashicorpGoPlugin.html"><strong aria-hidden="true">11.</strong> Hashicop Go Plugin</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li></ol></li><li class="chapter-item expanded "><a href="chapter3.html"><strong aria-hidden="true">3.</strong> 第三章 VM与AvalancheGo的连接</a></li><li class="chapter-item expanded "><a href="chapter4.html"><strong aria-hidden="true">4.</strong> 第四章 创建虚拟机VM</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter4.1.html"><strong aria-hidden="true">4.1.</strong> 时间戳服务器的实现Virtual Machine</a></li><li class="chapter-item expanded "><a href="chapter4.2.html"><strong aria-hidden="true">4.2.</strong> Static API</a></li><li class="chapter-item expanded "><a href="chapter4.3.html"><strong aria-hidden="true">4.3.</strong> API</a></li><li class="chapter-item expanded "><a href="chapter4.4.html"><strong aria-hidden="true">4.4.</strong> 封装运行</a></li></ol></li><li class="chapter-item expanded "><a href="chapter5.html"><strong aria-hidden="true">5.</strong> 第五章 专用EVM开发</a></li><li class="chapter-item expanded "><a href="chapter6.html"><strong aria-hidden="true">6.</strong> 第六章 本地网络模拟ANR</a></li><li class="chapter-item expanded "><a href="chapter7.html"><strong aria-hidden="true">7.</strong> 第七章 本地调试</a></li><li class="chapter-item expanded "><a href="chapter8.html"><strong aria-hidden="true">8.</strong> 第八章 生产环境部署</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -143,9 +143,9 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="第一章-avalanche共识协议介绍"><a class="header" href="#第一章-avalanche共识协议介绍">第一章 Avalanche共识协议介绍</a></h1>
-<p>Avalanche共识协议一种抽样投票基于亚稳态机制（metastable）的共识协议族，亚稳态是Avalanche协议的一个主要原理，它是通过传递“信任阈值”来达成共识。这种信任阈值通过网络传播，结构化和验证信息。亚稳态通常在高可用性数据库中可以看到达到共识结果的法定人数，其中还包含有助于系统快速达成共识的其他结构信息。为了有效地在网络上传播信息，单个节点将信息x传播到n个节点的网络中的法定数量k个节点，然后又将x传播到另一个法定数量k个节点。在分布系统中，对于接受和验证信息x是会存在相反意见的，人们希望协议的信任阈值的大小值是整个K节点中有超过2/3k的多数节点。因此，与传统的基于gossip协议的共识协议的显着区别在于亚稳态通过法定节点数量传播信息，而不是通过单个节点之间互相传播信息，从而保持整体较低的通信成本。
-Avalanche共识协议具体来说是一个协议族，主要包含Slush、flake、snowball、avalanche四种共识算法。
-这个共识协议族有绿色、安静、高效的特点。绿色（Green）消耗很少能源；安静（Quiescent）没有交易时不需要工作（相对比特币，比特币在没有交易的时候矿工也要不断工作）；高效（Efficient）节点交互复杂度O(knlogn) ~ O(kn)。
+<p>Avalanche共识协议一种抽样投票基于亚稳态机制（metastable）的共识协议族，亚稳态是Avalanche协议的一个主要原理，它是通过传递“信任阈值”来达成共识。这种信任阈值通过网络传播，结构化和验证信息。亚稳态通常在高可用性数据库中可以看到达到共识结果的法定人数，其中还包含有助于系统快速达成共识的其他结构信息。为了有效地在网络上传播信息，单个节点将信息x传播到n个节点的网络中的法定数量k个节点，然后又将x传播到另一个法定数量k个节点。在分布系统中，对于接受和验证信息x是会存在相反意见的，人们希望协议的信任阈值的大小值是整个K节点中有超过2/3k的多数节点。因此，与传统的基于gossip协议的共识协议的显着区别在于亚稳态通过法定节点数量传播信息，而不是通过单个节点之间互相传播信息，从而保持整体较低的通信成本。</p>
+<p>Avalanche共识协议具体来说是一个协议族，主要包含Slush、flake、snowball、avalanche四种共识算法。</p>
+<p>这个共识协议族有绿色、安静、高效的特点。绿色（Green）消耗很少能源；安静（Quiescent）没有交易时不需要工作（相对比特币，比特币在没有交易的时候矿工也要不断工作）；高效（Efficient）节点交互复杂度O(knlogn) ~ O(kn)。
 Avalanche共识算法有以下特点：
 1、并行共识模型：不使用单一复制状态机（RSM）模型，每个节点维护自己的RSM（可以互相转移所有权），系统对有关联的交易只维护偏序（partial order）
 2、反复随机采样：引导正常节点产生相同输出
@@ -275,29 +275,28 @@ snowman.convincer：当条件达到时，会发送一个chits到一个特定的v
 <p>event.voter :事件驱动模式，在满足条件的情况下会调用transitive中topological(snowman.Consensus)的RecordPoll(result)</p>
 <h2 id="poll解析"><a class="header" href="#poll解析">Poll解析</a></h2>
 <p>poll.Poll接口
-表示一轮投票poll，每一轮poll确定好要随机取样的节点（随机K个，有可能有一个点被重复取样一次以上），poll完成(收集到α个相同的投票)后即可以进入topological(snowman.Consensus实现实列) recordpoll(ID).
-type Set interface {
+表示一轮投票poll，每一轮poll确定好要随机取样的节点（随机K个，有可能有一个点被重复取样一次以上），poll完成(收集到α个相同的投票)后即可以进入topological(snowman.Consensus实现实列) recordpoll(ID).</p>
+<p>type Set interface {
 fmt.Stringer
 Add(requestID uint32, vdrs ids.ShortBag) bool
 Vote(requestID uint32, vdr ids.ShortID, vote ids.ID) []ids.Bag
 Drop(requestID uint32, vdr ids.ShortID) []ids.Bag
 Len() int
-}
-两个实现主要是finished条件不一样：
-【实现一】earlyTermNoTraversalPoll #当剩下的validators已经无法改变该结果的时候就finishes.
-type earlyTermNoTraversalPoll struct {
-votes  ids.Bag             #选票数量统计，初始为0
+}</p>
+<p>两个实现主要是finished条件不一样：</p>
+<p>【实现一】earlyTermNoTraversalPoll #当剩下的validators已经无法改变该结果的时候就finishes.</p>
+<p>type earlyTermNoTraversalPoll struct {
+votes  ids.Bag        #选票数量统计，初始为0
 polled ids.ShortBag   #投票人，每一个poll在创建的时候就确定好目标投票人（从P链中的节点随机选出k个）
-alpha  int                   #α
-}
-【实现二】noEarlyTermPoll #所有的validators要么有回应，要么超时才finishes.
-type noEarlyTermPoll struct {
+alpha  int            #α
+}</p>
+<p>【实现二】noEarlyTermPoll #所有的validators要么有回应，要么超时才finishes.</p>
+<p>type noEarlyTermPoll struct {
 votes  ids.Bag
 polled ids.ShortBag
-}
-abc</p>
-<p>【1】在AvalancheGo实现中，有一个参数：transitive.Params.ConcurrentRepolls用于同时进行网络poll的数量，即可以同时进行poll。(此处不清楚该操作是否会对网络安全有影响，待进一步参考相关资料)
-【2】每一次poll都是直接发送pullQuery(prefID),只发送当前prefID.</p>
+}</p>
+<p>【1】在AvalancheGo实现中，有一个参数：transitive.Params.ConcurrentRepolls用于同时进行网络poll的数量，即可以同时进行poll。(此处不清楚该操作是否会对网络安全有影响，待进一步参考相关资料)</p>
+<p>【2】每一次poll都是直接发送pullQuery(prefID),只发送当前prefID.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="第二章-avalanchego结构分析"><a class="header" href="#第二章-avalanchego结构分析">第二章 AvalancheGo结构分析</a></h1>
 <p>Avalanche采用了独特的三层网络结构，将执行环境和链本身分开，分为X链（交易链）、P链（平台链）、C链（合约链）。整个Avalanche网络依赖「雪」系列共识协议运行，该系列协议结合了拜占庭共识协议和工作量证明协议，衍生出了雪崩（Avalanche）、雪人（Snowman）和霜白（Frosty）三部分协议，其中X链使用雪崩协议，P链和C链使用雪人协议。</p>
 <div style="break-before: page; page-break-before: always;"></div><h2 id="snowman协议"><a class="header" href="#snowman协议">snowman协议</a></h2>
@@ -1698,318 +1697,6 @@ Jul 30 18:27:21 node-fuji avalanchego[1728308]: [07-30|18:27:21.055] INFO &lt;2e
 为了避免所有节点的验证周期同时过期，建议所有的节点验证周期相互错开，错开的时间最少是一天以上。</p>
 <h2 id="总结"><a class="header" href="#总结">总结</a></h2>
 <p>运行一个子网不是一个一次性的工作，而是运行一个7*24全年无休的服务。所以最好有健壮的日志系统，监控系统，以及通知机制。不断的对节点及子网的健康状态进行检查，并在问题刚刚发生的时候及时通知到。</p>
-<div style="break-before: page; page-break-before: always;"></div><p><a href="https://crates.io/crates/timestampvm"><img alt="crates.io" src="https://img.shields.io/crates/v/timestampvm.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20"></a>
-<a href="https://docs.rs/timestampvm"><img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-timestampvm-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20"></a>
-<img src="https://github.com/ava-labs/timestampvm-rs/actions/workflows/test-and-release.yml/badge.svg" alt="Github Actions" /></p>
-<h1 id="timestampvm-rs"><a class="header" href="#timestampvm-rs"><code>timestampvm-rs</code></a></h1>
-<p><code>timestampvm-rs</code> is a virtual machine that can build blocks from a user-provided arbitrary data. It is a minimal implementation of an Avalanche custom virtual machine (VM) in Rust, using the Avalanche <a href="https://github.com/ava-labs/avalanche-types-rs">Rust SDK</a>.</p>
-<p>Currently, Avalanche custom VM requires the following:</p>
-<ol>
-<li>Compiled to a binary that <code>avalanchego</code> can launch as a sub-process.</li>
-<li>Plugin binary path in hash of 32 bytes.</li>
-<li>Implements <a href="https://pkg.go.dev/github.com/ava-labs/avalanchego/snow/engine/snowman/block#ChainVM"><code>snowman.block.ChainVM</code></a> interface that can be be registered via <a href="https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/rpcchainvm#Serve"><code>rpcchainvm.Serve</code></a>.</li>
-<li>Implements VM-specific services that can be served via URL path of the blockchain ID.</li>
-<li>(Optionally) Implements VM-specific static handlers that can be served via URL path of the VM ID.</li>
-</ol>
-<p>For example, the timestamp VM can be run as follows:</p>
-<pre><pre class="playground"><code class="language-rust">use avalanche_types::subnet;
-use timestampvm::vm;
-use tokio::sync::broadcast::{self, Receiver, Sender};
-
-#[tokio::main]
-async fn main() -&gt; std::io::Result&lt;()&gt; {
-    let (stop_ch_tx, stop_ch_rx): (Sender&lt;()&gt;, Receiver&lt;()&gt;) = broadcast::channel(1);
-    let vm_server = subnet::rpc::vm::server::Server::new(vm::Vm::new(), stop_ch_tx);
-    subnet::rpc::plugin::serve(vm_server, stop_ch_rx).await
-}</code></pre></pre>
-<p>See <a href="timestampvm/src/bin/timestampvm/main.rs"><code>bin/timestampvm</code></a> for plugin implementation and <a href="tests/e2e/src/tests/mod.rs"><code>tests/e2e</code></a> for full end-to-end tests.</p>
-<h2 id="avalanchego-compatibility"><a class="header" href="#avalanchego-compatibility">AvalancheGo Compatibility</a></h2>
-<div class="table-wrapper"><table><thead><tr><th>Version(s)</th><th>AvalancheGo Version(s)</th></tr></thead><tbody>
-<tr><td>v0.0.6</td><td>v1.9.2,v1.9.3</td></tr>
-<tr><td>v0.0.7</td><td>v1.9.4</td></tr>
-</tbody></table>
-</div>
-<h2 id="example"><a class="header" href="#example">Example</a></h2>
-<pre><code class="language-bash"># build the timestampvm plugin, run e2e tests, and keep the network running
-./scripts/build.release.sh \
-&amp;&amp; VM_PLUGIN_PATH=$(pwd)/target/release/timestampvm \
-./scripts/tests.e2e.sh
-
-# or, specify the custom avalanchego binary
-./scripts/build.release.sh \
-&amp;&amp; VM_PLUGIN_PATH=$(pwd)/target/release/timestampvm \
-./scripts/tests.e2e.sh ~/go/src/github.com/ava-labs/avalanchego/build/avalanchego
-
-# (optional) set NETWORK_RUNNER_ENABLE_SHUTDOWN=1 in &quot;tests.e2e.sh&quot;
-# to shut down the network afterwards
-</code></pre>
-<p>To test <code>timestampvm</code> APIs, try the following commands:</p>
-<pre><code class="language-bash"># &quot;tGas3T58KzdjcJ2iKSyiYsWiqYctRXaPTqBCA11BqEkNg8kPc&quot; is the Vm Id
-# e.g., timestampvm vm-id timestampvm
-curl -X POST --data '{
-    &quot;jsonrpc&quot;: &quot;2.0&quot;,
-    &quot;id&quot;     : 1,
-    &quot;method&quot; : &quot;timestampvm.ping&quot;,
-    &quot;params&quot; : []
-}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/vm/tGas3T58KzdjcJ2iKSyiYsWiqYctRXaPTqBCA11BqEkNg8kPc/static
-
-# {&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;result&quot;:{&quot;success&quot;:true},&quot;id&quot;:1}
-</code></pre>
-<pre><code class="language-bash"># &quot;2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7&quot; is the blockchain Id
-curl -X POST --data '{
-    &quot;jsonrpc&quot;: &quot;2.0&quot;,
-    &quot;id&quot;     : 1,
-    &quot;method&quot; : &quot;timestampvm.ping&quot;,
-    &quot;params&quot; : []
-}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7/rpc
-
-# {&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;result&quot;:{&quot;success&quot;:true},&quot;id&quot;:1}
-</code></pre>
-<pre><code class="language-bash"># to get genesis block
-# &quot;2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7&quot; is the blockchain Id
-curl -X POST --data '{
-    &quot;jsonrpc&quot;: &quot;2.0&quot;,
-    &quot;id&quot;     : 1,
-    &quot;method&quot; : &quot;timestampvm.lastAccepted&quot;,
-    &quot;params&quot; : []
-}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7/rpc
-
-# {&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;result&quot;:{&quot;id&quot;:&quot;SDfFUzkdzWZbJ6YMysPPNEF5dWLp9q35mEMaLa8Ha2w9aMKoC&quot;},&quot;id&quot;:1}
-
-# &quot;2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7&quot; is the blockchain Id
-curl -X POST --data '{
-    &quot;jsonrpc&quot;: &quot;2.0&quot;,
-    &quot;id&quot;     : 1,
-    &quot;method&quot; : &quot;timestampvm.getBlock&quot;,
-    &quot;params&quot; : [{&quot;id&quot;:&quot;SDfFUzkdzWZbJ6YMysPPNEF5dWLp9q35mEMaLa8Ha2w9aMKoC&quot;}]
-}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7/rpc
-
-# {&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;result&quot;:{&quot;block&quot;:{&quot;data&quot;:&quot;0x32596655705939524358&quot;,&quot;height&quot;:0,&quot;parent_id&quot;:&quot;11111111111111111111111111111111LpoYY&quot;,&quot;timestamp&quot;:0}},&quot;id&quot;:1}
-</code></pre>
-<pre><code class="language-bash"># to propose data
-echo 1 | base64 | tr -d \\n
-# MQo=
-
-curl -X POST --data '{
-    &quot;jsonrpc&quot;: &quot;2.0&quot;,
-    &quot;id&quot;     : 1,
-    &quot;method&quot; : &quot;timestampvm.proposeBlock&quot;,
-    &quot;params&quot; : [{&quot;data&quot;:&quot;MQo=&quot;}]
-}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7/rpc
-
-# {&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;result&quot;:{&quot;success&quot;:true},&quot;id&quot;:1}
-</code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="timestamp-virtual-machine"><a class="header" href="#timestamp-virtual-machine">Timestamp Virtual Machine</a></h1>
-<p><a href="https://github.com/ava-labs/timestampvm/actions/workflows/lint_test_build.yml"><img src="https://github.com/ava-labs/timestampvm/actions/workflows/lint_test_build.yml/badge.svg" alt="Lint+Test+Build" /></a></p>
-<p>Avalanche is a network composed of multiple blockchains. Each blockchain is an instance of a <a href="https://docs.avax.network/learn/platform-overview#virtual-machines">Virtual Machine (VM)</a>, much like an object in an object-oriented language is an instance of a class. That is, the VM defines the behavior of the blockchain.</p>
-<p>TimestampVM defines a blockchain that is a timestamp server. Each block in the blockchain contains the timestamp when it was created along with a 32-byte piece of data (payload). Each block’s timestamp is after its parent’s timestamp. This VM demonstrates capabilities of custom VMs and custom blockchains. For more information, see: <a href="https://docs.avax.network/build/tutorials/platform/create-a-virtual-machine-vm">Create a Virtual Machine</a></p>
-<h2 id="running-the-vm"><a class="header" href="#running-the-vm">Running the VM</a></h2>
-<p><a href="scripts/run.sh"><code>scripts/run.sh</code></a> automatically installs [avalanchego], sets up a local network,
-and creates a <code>timestampvm</code> genesis file. To build and run E2E tests, you need to set the variable <code>E2E</code> before it: <code>E2E=true ./scripts/run.sh 1.7.11</code></p>
-<p><em>See <a href="tests/e2e"><code>tests/e2e</code></a> to see how it's set up and how its client requests are made.</em></p>
-<pre><code class="language-bash"># to startup a local cluster (good for development)
-cd ${HOME}/go/src/github.com/ava-labs/timestampvm
-./scripts/run.sh 1.9.3
-
-# to run full e2e tests and shut down cluster afterwards
-cd ${HOME}/go/src/github.com/ava-labs/timestampvm
-E2E=true ./scripts/run.sh 1.9.3
-
-# inspect cluster endpoints when ready
-cat /tmp/avalanchego-v1.9.3/output.yaml
-&lt;&lt;COMMENT
-endpoint: /ext/bc/2VCAhX6vE3UnXC6s1CBPE6jJ4c4cHWMfPgCptuWS59pQ9vbeLM
-logsDir: ...
-pid: 12811
-uris:
-- http://127.0.0.1:9650
-- http://127.0.0.1:9652
-- http://127.0.0.1:9654
-- http://127.0.0.1:9656
-- http://127.0.0.1:9658
-network-runner RPC server is running on PID 66810...
-
-use the following command to terminate:
-
-pkill -P 66810 &amp;&amp; kill -2 66810 &amp;&amp; pkill -9 -f tGas3T58KzdjLHhBDMnH2TvrddhqTji5iZAMZ3RXs2NLpSnhH
-
-# propose a block
-curl -X POST --data '{
-    &quot;jsonrpc&quot;: &quot;2.0&quot;,
-    &quot;method&quot;: &quot;timestampvm.proposeBlock&quot;,
-    &quot;params&quot;:{
-        &quot;data&quot;:&quot;0x01020304000000000000000000000000000000000000000000000000000000003f004e9c&quot;
-    },
-    &quot;id&quot;: 1
-}' -H 'content-type:application/json;' http://127.0.0.1:9652/ext/bc/2W3Gn3E3xKSeHQZP47iybpgH6pk3JRWbNQs9P2FrKvXcHSNteB
-&lt;&lt;COMMENT
-{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;result&quot;:{&quot;Success&quot;:true},&quot;id&quot;:1}
-COMMENT
-
-# view last accepted block
-curl -X POST --data '{
-    &quot;jsonrpc&quot;: &quot;2.0&quot;,
-    &quot;method&quot;: &quot;timestampvm.getBlock&quot;,
-    &quot;params&quot;:{},
-    &quot;id&quot;: 1
-}' -H 'content-type:application/json;' http://127.0.0.1:9652/ext/bc/2W3Gn3E3xKSeHQZP47iybpgH6pk3JRWbNQs9P2FrKvXcHSNteB
-&lt;&lt;COMMENT
-{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;result&quot;:{&quot;timestamp&quot;:&quot;1668475950&quot;,&quot;data&quot;:&quot;0x01020304000000000000000000000000000000000000000000000000000000003f004e9c&quot;,&quot;height&quot;:&quot;1&quot;,&quot;id&quot;:&quot;2RbyqtZcr8DWnxWjD2jLaPUsjd2cxMFbjz1kmJjR7gDpp3txvz&quot;,&quot;parentID&quot;:&quot;SdVstz8FpkYxsneD2XQDk2CK7d1EBe4YVqkhftgbvUiyFfeHJ&quot;},&quot;id&quot;:1}
-COMMENT
-
-# terminate cluster
-pkill -P 66810 &amp;&amp; kill -2 66810 &amp;&amp; pkill -9 -f tGas3T58KzdjLHhBDMnH2TvrddhqTji5iZAMZ3RXs2NLpSnhH
-</code></pre>
-<h2 id="load-testing-the-vm"><a class="header" href="#load-testing-the-vm">Load Testing the VM</a></h2>
-<p>Because <code>TimestampVM</code> is such a lightweight Virtual Machine, it is a great
-candidate for testing the raw performance of the <code>ProposerVM</code> wrapper in
-AvalancheGo.</p>
-<p>To kickoff a load test, all you need to do is run the following command:</p>
-<pre><code class="language-bash">./scripts/tests.load.sh 1.9.3
-</code></pre>
-<p>This will automatically:</p>
-<ul>
-<li>disable all rate limiting rules in AvalancheGo</li>
-<li>activate the ProposerVM immediately (usually activates after 5 minutes on
-a new Subnet)</li>
-<li>set the ProposerVM block timer to have 0 delay (generate blocks as
-fast as possible)</li>
-</ul>
-<p>When running, you'll see a set of logs printed out indicating the current
-number of blocks per second <strong>generated and finalized</strong> on a local network:</p>
-<pre><code>INFO[11-18|09:19:58] Stats                                    height=0 avg bps=0.000 last bps=0.000
-INFO[11-18|09:20:01] Stats                                    height=261 avg bps=86.795 last bps=87.000
-INFO[11-18|09:20:04] Stats                                    height=597 avg bps=99.372 last bps=112.000
-INFO[11-18|09:20:07] Stats                                    height=942 avg bps=104.566 last bps=115.000
-INFO[11-18|09:20:10] Stats                                    height=1291 avg bps=107.493 last bps=116.333
-INFO[11-18|09:20:13] Stats                                    height=1634 avg bps=108.854 last bps=114.333
-INFO[11-18|09:20:16] Stats                                    height=1976 avg bps=109.664 last bps=114.000
-INFO[11-18|09:20:19] Stats                                    height=2308 avg bps=109.804 last bps=110.667
-INFO[11-18|09:20:22] Stats                                    height=2636 avg bps=109.742 last bps=109.333
-INFO[11-18|09:20:25] Stats                                    height=2978 avg bps=110.213 last bps=114.000
-INFO[11-18|09:20:28] Stats                                    height=3318 avg bps=110.512 last bps=113.333
-INFO[11-18|09:20:31] Stats                                    height=3649 avg bps=110.489 last bps=110.333
-INFO[11-18|09:20:34] Stats                                    height=3987 avg bps=110.667 last bps=112.667
-INFO[11-18|09:20:37] Stats                                    height=4320 avg bps=110.691 last bps=111.000
-INFO[11-18|09:20:40] Stats                                    height=4653 avg bps=110.711 last bps=111.000
-INFO[11-18|09:20:43] Stats                                    height=4974 avg bps=110.453 last bps=107.000
-INFO[11-18|09:20:46] Stats                                    height=5304 avg bps=110.423 last bps=110.000
-INFO[11-18|09:20:49] Stats                                    height=5636 avg bps=110.434 last bps=110.667
-INFO[11-18|09:20:52] Stats                                    height=5950 avg bps=110.101 last bps=104.667
-INFO[11-18|09:20:55] Stats                                    height=6236 avg bps=109.317 last bps=95.333
-INFO[11-18|09:20:58] Stats                                    height=6552 avg bps=109.116 last bps=105.333
-INFO[11-18|09:21:01] Stats                                    height=6876 avg bps=109.061 last bps=108.000
-INFO[11-18|09:21:04] Stats                                    height=7210 avg bps=109.163 last bps=111.333
-INFO[11-18|09:21:07] Stats                                    height=7499 avg bps=108.574 last bps=96.333
-INFO[11-18|09:21:10] Stats                                    height=7787 avg bps=108.049 last bps=96.000
-INFO[11-18|09:21:13] Stats                                    height=8119 avg bps=108.152 last bps=110.667
-INFO[11-18|09:21:16] Stats                                    height=8449 avg bps=108.222 last bps=110.000
-INFO[11-18|09:21:19] Stats                                    height=8779 avg bps=108.279 last bps=110.000
-INFO[11-18|09:21:22] Stats                                    height=9107 avg bps=108.315 last bps=109.333
-INFO[11-18|09:21:25] Stats                                    height=9437 avg bps=108.372 last bps=110.000
-INFO[11-18|09:21:28] Stats                                    height=9757 avg bps=108.315 last bps=106.667
-INFO[11-18|09:21:31] Stats                                    height=10069 avg bps=108.175 last bps=104.000
-INFO[11-18|09:21:34] Stats                                    height=10401 avg bps=108.242 last bps=110.667
-</code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="writing-plugins-without-go"><a class="header" href="#writing-plugins-without-go">Writing Plugins Without Go</a></h1>
-<p>此文介绍通过非go编程语言来写一个可以与go-plugin兼容的插件。因为go-plugin是通过gRPC来实现的，因此，兼容其他编程语言实现的插件也相对要简单很多。</p>
-<p>开发兼容go-plugin的插件想要用到gPRC的相关知识，如果不熟悉gRPC，可以参考<a href="http://www.grpc.io/docs/tutorials/basic/go.html">gRPC Go Tutorial</a>. This alone is enough gRPC knowledge to continue.</p>
-<p>This guide will implement the kv example in Python.
-Full source code for the examples present in this guide
-<a href="https://github.com/hashicorp/go-plugin/tree/master/examples/grpc">is available in the examples/grpc folder</a>.</p>
-<h2 id="1-implement-the-service"><a class="header" href="#1-implement-the-service">1. Implement the Service</a></h2>
-<p>第一步是实现gRPC，服务于插件中定义的protocol buffers service。这是一个标准的gRPC服务。对于KV型服务，大概是这样的结构：</p>
-<pre><code class="language-proto">service KV {
-    rpc Get(GetRequest) returns (GetResponse);
-    rpc Put(PutRequest) returns (Empty);
-}
-</code></pre>
-<p>Python实现版本如下:</p>
-<pre><code class="language-python">class KVServicer(kv_pb2_grpc.KVServicer):
-    &quot;&quot;&quot;Implementation of KV service.&quot;&quot;&quot;
-
-    def Get(self, request, context):
-        filename = &quot;kv_&quot;+request.key
-        with open(filename, 'r') as f:
-            result = kv_pb2.GetResponse()
-            result.value = f.read()
-            return result
-
-    def Put(self, request, context):
-        filename = &quot;kv_&quot;+request.key
-        value = &quot;{0}\n\nWritten from plugin-python&quot;.format(request.value)
-        with open(filename, 'w') as f:
-            f.write(value)
-
-        return kv_pb2.Empty()
-
-</code></pre>
-<p>这样就实现了service,接下来可以通过标准的gRPC测试机制来测试我们的功能（服务）。</p>
-<h2 id="2-serve-the-service"><a class="header" href="#2-serve-the-service">2. Serve the Service</a></h2>
-<p>现在先要构建一个gRPC服务器，对外提供我们刚刚实现的服务。</p>
-<p>In Python:</p>
-<pre><code class="language-python"># 新建server
-server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-# 添加service
-kv_pb2_grpc.add_KVServicer_to_server(KVServicer(), server)
-# 设置监听端口
-server.add_insecure_port(':1234')
-# 启动服务
-server.start()
-</code></pre>
-<p>服务器可以监听任意的TCP地址 或者 Unix domain socket.go-plugin 运行前提是可靠底层链接，所以最好不要server和client之间最好不要跨网络，即建议本地运行。</p>
-<h2 id="3-add-the-grpc-health-checking-service"><a class="header" href="#3-add-the-grpc-health-checking-service">3. Add the gRPC Health Checking Service</a></h2>
-<p>go-plugin requires the
-<a href="https://github.com/grpc/grpc/blob/master/doc/health-checking.md">gRPC Health Checking Service</a>
-to be registered on your server. You must register the status of &quot;plugin&quot; to be SERVING.</p>
-<p>The health checking service is used by go-plugin to determine if everything
-is healthy with the connection. If you don't implement this service, your
-process may be abruptly restarted and your plugins are likely to be unreliable.</p>
-<pre><code>health = HealthServicer()
-health.set(&quot;plugin&quot;, health_pb2.HealthCheckResponse.ServingStatus.Value('SERVING'))
-health_pb2_grpc.add_HealthServicer_to_server(health, server)
-</code></pre>
-<h2 id="4-output-handshake-information-发出握手消息"><a class="header" href="#4-output-handshake-information-发出握手消息">4. Output Handshake Information 发出握手消息</a></h2>
-<p>最后一步，向stdout发出握手信息。go-plugin将会从标准输出stdout中读取一行，然后根据消息确定如何连接我们的插件、使用什么协议，etc.</p>
-<p>握手消息结构如下:</p>
-<pre><code>CORE-PROTOCOL-VERSION | APP-PROTOCOL-VERSION | NETWORK-TYPE | NETWORK-ADDR | PROTOCOL
-</code></pre>
-<p>说明:</p>
-<ul>
-<li>
-<p><code>CORE-PROTOCOL-VERSION</code> is the protocol version for go-plugin itself.
-The current value is <code>1</code>. Please use this value. Any other value will
-cause your plugin to not load.</p>
-</li>
-<li>
-<p><code>APP-PROTOCOL-VERSION</code> is the protocol version for the application data.
-This is determined by the application. You must reference the documentation
-for your application to determine the desired value.</p>
-</li>
-<li>
-<p><code>NETWORK-TYPE</code> and <code>NETWORK-ADDR</code> are the networking information for
-connecting to this plugin. The type must be &quot;unix&quot; or &quot;tcp&quot;. The address
-is a path to the Unix socket for &quot;unix&quot; and an IP address for &quot;tcp&quot;.</p>
-</li>
-<li>
-<p><code>PROTOCOL</code> is the named protocol that the connection will use. If this
-is omitted (older versions), this is &quot;netrpc&quot; for Go net/rpc. This can
-also be &quot;grpc&quot;. This is the protocol that the plugin wants to speak to
-the host process with.</p>
-</li>
-</ul>
-<p>一般握手消息示例:</p>
-<pre><code>1|1|tcp|127.0.0.1:1234|grpc
-</code></pre>
-<p>这里唯一想要注意的是第二个 (<code>APP-PROTOCOL-VERISON</code>)，这个是与插件程序相关的，更多细节请参考其他资料，此处不再赘述。</p>
-<h2 id="5-完成"><a class="header" href="#5-完成">5. 完成！</a></h2>
-<p>And we're done!</p>
-<p>Configure the host application (the application you're writing a plugin
-for) to execute your Python application. Configuring plugins is specific
-to the host application.</p>
-<p>For our example, we used an environmental variable, and it looks like this:</p>
-<pre><code class="language-sh">$ export KV_PLUGIN=&quot;python plugin.py&quot;
-</code></pre>
 
                     </main>
 
