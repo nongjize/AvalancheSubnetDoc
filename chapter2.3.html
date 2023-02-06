@@ -171,8 +171,8 @@
 </li>
 </ul>
 <h2 id="概览"><a class="header" href="#概览">概览</a></h2>
-<p>Avalanche is a decentralized <a href="https://en.wikipedia.org/wiki/Peer-to-peer">p2p</a> (peer-to-peer) network of nodes that work together to run the Avalanche blockchain protocol.</p>
-<p>The <code>network</code> package implements the networking layer of the protocol which allows a node to discover, connect to, and communicate with other peers.</p>
+<p>Avalanche是一个由<a href="https://en.wikipedia.org/wiki/Peer-to-peer">p2p</a> (peer-to-peer)网络节点的共同运行Avalanche区块链协议的区中心化共识网络。
+<code>network</code>package 实现了协议的网络层，节点通过网络层查找到网络的其他节点，并与其他节点连接，网络节点之间通过网络层相互通信、达成共识。</p>
 <h2 id="peers节点"><a class="header" href="#peers节点">Peers节点</a></h2>
 <p>Peers节点是构成Avlanche网络的基本网络节点，所有节点之间可以相互通信，并参与Avalanche共识协议。</p>
 <p>每一个Peers节点与其他各个节点之间的通讯是异步的，类似队列的先进先出顺序，即与一个节点完成通讯之后才会处理与其他节点之间的通信。以这种特殊方式处理通讯是因为Avalanche共识协议的工作原理导致的。 
@@ -189,18 +189,16 @@
 </code></pre>
 <h3 id="lifecycle"><a class="header" href="#lifecycle">Lifecycle</a></h3>
 <h4 id="启动节点"><a class="header" href="#启动节点">启动节点</a></h4>
-<p>When starting an Avalanche node, a node needs to be able to initiate some process that eventually allows itself to become a participating member of the network. In traditional web2 systems, it's common to use a web service by hitting the service's DNS and being routed to an available server behind a load balancer. In decentralized p2p systems however, connecting to a node is more complex as no single entity owns the network. <a href="https://docs.avax.network/overview/getting-started/avalanche-consensus">Avalanche consensus</a> requires a node to repeatedly sample peers in the network, so each node needs some way of discovering and connecting to every other peer to participate in the protocol.</p>
-<p>In Avalanche, nodes connect to an initial set of bootstrapper nodes known as <strong>beacons</strong> (this is user-configurable). Once connected to a set of beacons, a node is able to discover other nodes in the network. Over time, a node eventually discovers other peers in the network through <code>PeerList</code> messages it receives through:</p>
+<p>启动一个Avalanche节点的时候，节点需要初始化一系列程序，从而最终可以加入到网络中成为网络的一个节点，在传统的web2系统中，通常在一个负载均衡程序后开启一个服务即可。但是在去中心化p2p网络中,启动一个节点要相对复杂得多。因为整个网络是分散的。没有一个所谓的管理员。 <a href="https://docs.avax.network/overview/getting-started/avalanche-consensus">Avalanche consensus</a> 需要每个节点不断的从全网络节点中随机抽查一部分节点关于共识的达成情况，所以每个网络节点都需要有获取全网节点数据的能力、方法，从而参加共识协议的运行。</p>
+<p>在Avalanche中，节点先连接到已初始化的一部分节点（即所谓的<strong>bencons</strong>,这是可配置的）。只要连接到一个beacons,节点就可以发现网络上的其他节点。随着时间的推移，节点通过以下方式接收到的 <code>PeerList</code> messages中最终发现网络上的节点：</p>
 <ul>
-<li>The handshake initiated between two peers when attempting to connect to a peer (see <a href="#connecting">Connecting</a>).</li>
-<li>Periodic <code>PeerList</code> gossip messages that every peer sends to the peers it's connected to (see <a href="#connected">Connected</a>).</li>
+<li>两个节点尝试连接时初始握手信息；(详见 <a href="#connecting">Connecting</a>).</li>
+<li>每一个节点都会向他连接的节点 periodic <code>PeerList</code> gossip messages (详见 <a href="#connected">Connected</a>).</li>
 </ul>
-<h4 id="connecting"><a class="header" href="#connecting">Connecting</a></h4>
+<h4 id="connecting-连接过程"><a class="header" href="#connecting-连接过程">Connecting 连接过程</a></h4>
 <h5 id="peer-handshake"><a class="header" href="#peer-handshake">Peer Handshake</a></h5>
-<p>一连上某一个节点，连个节点之间就执行握手程序handshake，建立一个发送连接和接收连接。
-Upon connection to any peer, a handshake is performed between the node attempting to establish the outbound connection to the peer and the peer receiving the inbound connection.</p>
-<p>当尝试建立起连接时，第一个message为&quot;Version&quot;message,主要描述candidate node和本节点之间的compatibility.
-When attempting to establish the connection, the first message that the node attempting to connect to the peer in the network is a <code>Version</code> message describing compatibility of the candidate node with the peer. As an example, nodes that are attempting to connect with an incompatible version of AvalancheGo or a significantly skewed local clock are rejected by the peer.</p>
+<p>一连上某一个节点，连个节点之间就执行握手程序handshake，建立一个发送连接和接收连接。</p>
+<p>当尝试建立起连接时，第一个message为&quot;Version&quot;message,主要描述candidate node和本节点之间的compatibility.例如，当一个节点尝试与另一个运行不兼容版本的AvalancheGo的节点、或者明显的本地时钟对应不上的节点连接时，就会被拒绝。</p>
 <pre><code class="language-mermaid">sequenceDiagram
 Note over Node,Peer: Initiate Handshake
 Note left of Node: I want to connect to you!
@@ -210,7 +208,7 @@ Note right of Peer: My version v1.9.4 is incompatible with your version v1.0.0.
 Peer-xNode: Connection dropped
 Note over Node,Peer: Handshake Failed
 </code></pre>
-<p>If the <code>Version</code> message is successfully received and the peer decides that it wants a connection with this node, it replies with a <code>PeerList</code> message that contains metadata about other peers that allows a node to connect to them. Upon reception of a <code>PeerList</code> message, a node will attempt to connect to any peers that the node is not already connected to to allow the node to discover more peers in the network.</p>
+<p>如果<code>Version</code> message被成功接收，然后对方节点也准备与此节点连接的时候，他会回复一个<code>PeerList</code> message，该message中有网络上其他节点的信息，这些节点都也许连接。一接收到一个<code>PeerList</code> message，节点就会尝试去连接message中还没有与自己连接的的其他节点，这样一来，节点就会不断的发现网络上的其他节点。</p>
 <pre><code class="language-mermaid">sequenceDiagram
 Note over Node,Peer: Initiate Handshake
 Note left of Node: I want to connect to you!
@@ -222,9 +220,9 @@ Peer-&gt;&gt;Node: Peer-X, Peer-Y, Peer-Z
 Note over Node,Peer: Handshake Complete
 Node-&gt;&gt;Peer: ACK Peer-X, Peer-Y, Peer-Z
 </code></pre>
-<p>Once the node attempting to join the network receives this <code>PeerList</code> message, the handshake is complete and the node is now connected to the peer. The node attempts to connect to the new peers discovered in the <code>PeerList</code> message. Each connection results in another peer handshake, which results in the node incrementally discovering more and more peers in the network as more and more <code>PeerList</code> messages are exchanged.</p>
-<h4 id="connected"><a class="header" href="#connected">Connected</a></h4>
-<p>Some peers aren't discovered through the <code>PeerList</code> messages exchanged through peer handshakes. This can happen if a peer is either not randomly sampled, or if a new peer joins the network after the node has already connected to the network.</p>
+<p>一个试图加入网络的节点如果接收到一个 <code>PeerList</code> message，握手程序就算完成，表示节点已经与该节点连接。如果节点想继续与<code>PeerList</code> message中的网络节点连接，重复handshake程序即可。如此下去，会有越来越多的<code>PeerList</code> messages交换，越来越多的节点被发现。</p>
+<h4 id="connected-连接完成"><a class="header" href="#connected-连接完成">Connected 连接完成</a></h4>
+<p>有一些节点peers可能不会通过<code>PeerList</code> messages来发现，出现这种情况的原因有可能是节点在取样的时候不是随机的情况下，在该网络已经加入到网络之后，又有新的peer加入到网络中。</p>
 <pre><code class="language-mermaid">sequenceDiagram
 Node -&gt;&gt; Peer-1: Version - v1.9.5
 Peer-1 -&gt;&gt; Node: PeerList - Peer-2
@@ -236,20 +234,16 @@ Node -&gt;&gt; Peer-2: ACK - Peer-1
 Note left of Node: Peer-3 was never sampled, so we haven't connected yet!
 Node --&gt; Peer-3: No connection
 </code></pre>
-<p>为保证节点能够发现整个网络的其他所有的节点，每一个节点都会在已知的节点中随机取样部分节点进行periodiclly gossips。 
-To guarantee that a node can discover all peers, each node periodically gossips a sample of the peers it knows about to other peers.</p>
+<p>为保证节点能够发现整个网络的其他所有的节点，每一个节点都会在已知的节点中随机取样部分节点进行periodiclly gossips。 </p>
 <h5 id="peerlist-gossip"><a class="header" href="#peerlist-gossip">PeerList Gossip</a></h5>
 <h6 id="messages"><a class="header" href="#messages">Messages</a></h6>
-<p>A <code>PeerList</code> is the message that is used to communicate the presence of peers in the network. Each <code>PeerList</code> message contains networking-level metadata about the peer that provides the necessary information to connect to it, alongside the corresponding transaction id that added that peer to the validator set. Transaction ids are unique hashes that only add a single validator, so it is guaranteed that there is a 1:1 mapping between a validator and its associated transaction id.</p>
-<p><code>PeerListAck</code> messages are sent in response to <code>PeerList</code> messages to allow a peer to confirm which peers it will actually attempt to connect to. Because nodes only gossip peers they believe another peer doesn't already know about to optimize bandwidth, <code>PeerListAck</code> messages are important to confirm that a peer will attempt to connect to someone. Without this, a node might gossip a peer to another peer and assume a connection between the two is being established, and not re-gossip the peer in future gossip cycles. If the connection was never actually wanted by the peer being gossiped to due to a transient reason, that peer would never be able to re-discover the gossiped peer and could be isolated from a subset of the network.</p>
-<p>Once a <code>PeerListAck</code> message is received from a peer, the node that sent the original <code>PeerList</code> message marks the corresponding acknowledged validators as already having been transmitted to the peer, so that it's excluded from subsequent iterations of <code>PeerList</code> gossip.</p>
+<p><code>PeerList</code> message是一个用于发送网络上的节点的message,每个 <code>PeerList</code>message消息包含有节点的网络层元数据，这些元数据包含了关于如何与其连接的数据、相对应的该节点加入验证集交易的transaction id,交易id是一个唯一的hash,只用于将一个节点加入验证集，所以这样就可以保证transaction id与验证节点之间是一一对应的关系。</p>
+<p><code>PeerListAck</code> messages 是用于回应确认收到 <code>PeerList</code> messages的messages，用来确认对方已经确保可以连接。为了优化网络带宽的使用，因为节点只会gossip他们认为另一个节点还不知道的同伴.<code>PeerListAck</code> messages非常重要，用于确认某一个节点打算连接。如果没有这一点，节点对另一个节点进行gossip后，会认为对方节点与正在打算与自己节点连接，从而在后续的gossip周期中不在重新对该节点进行gossip。如果由于某个临时的原因，被gossip的节点没有开始连接节点，那么该节点将永远无法重新发现被被gossip的该节点，从而导致与某一个网络子集脱离。</p>
+<p>节点只要一收到<code>PeerListAck</code> message，就会将对方节点进行标记，后面的<code>PeerList</code> gossip就不在向该节点发送。</p>
 <h6 id="gossip-节点信息传播"><a class="header" href="#gossip-节点信息传播">Gossip 节点信息传播</a></h6>
-<p>handshake messages 会给节点提供一部分网络上的节点数据，但是这种从每一个已连接的节点的handshake messages获取网络节点数据的方式不能保证能获取全网的所有节点数据。
-Handshake messages provide a node with some knowledge of peers in the network, but offers no guarantee that learning about a subset of peers from each peer the node connects with will result in the node learning about every peer in the network.
-为了保证节点最终能够得到全网所有节点的数据（极大概率上安全保证）。每一个节点都会periodically 从已经连接的节点中随机取样部分节点进行gossips。随着时间的推移，极大概率（基本等于肯定）所有节点都会获取全网其他节点的数据。
-In order to provide a probabilistic guarantee that all peers in the network will eventually learn of one another, each node periodically gossips a sample of the peers that they're aware of to a sample of the peers that they're connected to. Over time, this probabilistically guarantees that every peer will eventually learn of every other peer.
-为优化网络带宽的占用，每一个节点自己都会记录、维护哪些节点一定“知道”哪些其他节点，节点通过跟踪分析进、出“PeerList”来维护这些信息、数据。
-To optimize bandwidth usage, each node tracks which peers are guaranteed to know of which peers. A node learns this information by tracking both inbound and outbound <code>PeerList</code> gossip.</p>
+<p>handshake messages 会给节点提供一部分网络上的节点数据，但是这种从每一个已连接的节点的handshake messages获取网络节点数据的方式不能保证能获取全网的所有节点数据。</p>
+<p>为了保证节点最终能够得到全网所有节点的数据（极大概率上安全保证）。每一个节点都会periodically 从已经连接的节点中随机取样部分节点进行gossips。随着时间的推移，极大概率（基本等于肯定）所有节点都会获取全网其他节点的数据。</p>
+<p>为优化网络带宽的占用，每一个节点自己都会记录、维护哪些节点一定“知道”哪些其他节点，节点通过跟踪分析进、出“PeerList”来维护这些信息、数据。</p>
 <ul>
 <li>Inbound
 <ul>
