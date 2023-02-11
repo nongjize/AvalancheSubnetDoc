@@ -1,0 +1,309 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Snowman VMs</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter1.html"><strong aria-hidden="true">1.</strong> 第一章 Avalanche共识协议介绍</a></li><li class="chapter-item expanded "><a href="chapter2.html"><strong aria-hidden="true">2.</strong> 第二章 AvalancheGo结构分析</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter2.1.html"><strong aria-hidden="true">2.1.</strong> snowman协议</a></li><li class="chapter-item expanded "><a href="chapter2.2.html"><strong aria-hidden="true">2.2.</strong> snowman协议实现解析</a></li><li class="chapter-item expanded "><a href="chapter2.3.html"><strong aria-hidden="true">2.3.</strong> Avalanche网络</a></li><li class="chapter-item expanded "><a href="SnowmanVMs.html" class="active"><strong aria-hidden="true">2.4.</strong> Snowman VMs</a></li></ol></li><li class="chapter-item expanded "><a href="chapter3.html"><strong aria-hidden="true">3.</strong> 第三章 VM与AvalancheGo的连接</a></li><li class="chapter-item expanded "><a href="chapter4.html"><strong aria-hidden="true">4.</strong> 第四章 创建虚拟机VM</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="chapter4.1.html"><strong aria-hidden="true">4.1.</strong> 时间戳服务器的实现Virtual Machine</a></li><li class="chapter-item expanded "><a href="chapter4.2.html"><strong aria-hidden="true">4.2.</strong> Static API</a></li><li class="chapter-item expanded "><a href="chapter4.3.html"><strong aria-hidden="true">4.3.</strong> API</a></li><li class="chapter-item expanded "><a href="chapter4.4.html"><strong aria-hidden="true">4.4.</strong> 封装运行</a></li></ol></li><li class="chapter-item expanded "><a href="chapter5.html"><strong aria-hidden="true">5.</strong> 第五章 专用EVM开发</a></li><li class="chapter-item expanded "><a href="chapter6.html"><strong aria-hidden="true">6.</strong> 第六章 本地网络模拟ANR</a></li><li class="chapter-item expanded "><a href="chapter7.html"><strong aria-hidden="true">7.</strong> 第七章 本地调试</a></li><li class="chapter-item expanded "><a href="chapter8.html"><strong aria-hidden="true">8.</strong> 第八章 生产环境部署</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title"></h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="snowman-vms"><a class="header" href="#snowman-vms">Snowman VMs</a></h1>
+<h2 id="avalanche-subnets摘要说明"><a class="header" href="#avalanche-subnets摘要说明">Avalanche Subnets摘要说明</a></h2>
+<p>The Avalanche Network is composed of multiple validator sets and blockchains. A validator set defines a group of validators and their specified weights in the consensus process. A subnet is a validator set working together to achieve consensus on a set of blockchains. Every blockchain is validated by one subnet, and one subnet can validate many blockchains.</p>
+<p>There is a special subnet inherent to the Avalanche Network called the Primary Network. The Primary Network is validated by every node on the Avalanche network. All subnets' validator sets are required to be a subset of the Primary Network's validator set. That is, if a validator belongs to a subnet then it also belongs to the Primary Network. The Primary Network validates three blockchains that are inherent to the Avalanche Network: the P-Chain, C-Chain, and X-Chain.</p>
+<p>For each blockchain, consensus is driven by the consensus engine. For each subnet, the P-Chain, or Platform Chain, defines the validator set and the set of blockchains that are validated by the subnet.</p>
+<p>A blockchain consists of two components: a consensus engine and a Virtual Machine (VM). The consensus engine samples validators, handles the responses, and pushes the results of the completed polls into the consensus <a href="../snow/consensus/">code</a> to decide which containers to Accept/Reject. The VM encodes the application logic for the blockchain. The VM defines the contents of a block, the rules for determining whether a block is valid, the APIs exposed to users, the state transition that occurs if a given block is accepted, and so on.</p>
+<p>The consensus engine is general and agnostic to the application semantics of the blockchain. There are two consensus engine implementations in AvalancheGo: Snowman and Avalanche. Snowman provides a consensus engine for linear chains and Avalanche provides a consensus engine for DAGs. These consensus engine implementations can be re-used for multiple different blockchains in the Avalanche ecosystem, and each blockchain actually runs its own independent instance of consensus.</p>
+<p>在Avalanche上发布一条区块链，只需要根据要求接口将application业务逻辑实现成为一个VM即可，共识部分交给已有的共识引擎来完成实现。
+To launch a blockchain on Avalanche, you just need to write a VM that defines your application; the consensus part is handled by the existing consensus engine implementations.</p>
+<p>This document will go into the details of implementing a ChainVM to run on the Snowman consensus engine. To implement a VM for snowman, we just need to implement the <code>ChainVM</code> interface defined <a href="../snow/engine/snowman/block/vm.go">here.</a></p>
+<p>VMs are reusable. Arbitrarily many blockchains can run the same VM. Each blockchain has its own state. In this way, a VM is to a blockchain what a class is to an instance of a class in an object-oriented programming language.</p>
+<h2 id="从consensus-engine-的角度看-snowmanvm"><a class="header" href="#从consensus-engine-的角度看-snowmanvm">从consensus engine 的角度看 SnowmanVM</a></h2>
+<p>对应consensus engine 来说，SnowmanVM就是一个黑盒子，是一个有着严格规定的数据处理模块，可以用来创建区块，解析区块，保存区块，同时提供了一些区块处理的方法供引擎调用。</p>
+<h3 id="snowman-vm-处理区块的相关功能"><a class="header" href="#snowman-vm-处理区块的相关功能">Snowman VM 处理区块的相关功能</a></h3>
+<p>在consensus engine处理共识过程中，需要对应的Snowman VM能够实现以下功能接口，供引擎调用。</p>
+<h4 id="build-block创建区块"><a class="header" href="#build-block创建区块">Build Block创建区块</a></h4>
+<p>Build block allows the VM to propose a new block to be added to consensus.
+VM可以通过一个<code>toEngine</code> channel向engine发送消息（这个channel在VM initialized阶段会分配）。当VM准备创建一个区块的时候，VM可以通过此channel向engine发送给message。例如：如果VM收到一些交易（可能是来自网络gossip或者本节点的API）的时候，VM就会向engine发送一个<code>PendingTxs</code> message 表示VM已准备好数据可以创建一个新的区块。<code>PendingTxs</code> message通知engine,其应该调用<code>BuildBlock()</code>创建区块，以将pending 数据添加到共识中。</p>
+<p>VM创建区块的时候，先向engine发消息，再由engine调用VM的<code>BuildBlock()</code>。如此绕一圈意义何在呢？这里需要特别说明的是，在实际工程实现中， Snowman VMs会被包装成 <a href="./proposervm/README.html">Snowman++</a>.顾名思义，Snowman++是一个Snowman的改进版本，用于处理原生的Snowman协议在理论上和实际中的一些小差异导致的性能问题，这个差异就是区块的生成问题，在avalanche协议中，区块虽然会最终达成共识，但是如果不对生成区块的顺序进行控制的话，多个区块共同竞争会造成网络拥堵，网络共识的时间就会比较长这个就是我们说的网络共识性能问题。所以，通过Snowman++进一步进行了优化。</p>
+<p>Snowman++的优化思路是：在全网validators中由一个称为soft leader（soft leader不是指定某一个节点，而是从全网validators中通过密码算法推荐的一个节点，不固定）的节点生成区块，如果在规定时间内soft leader没有产出区块，Snowman++ 会平滑的添加可产生区块的节点，如果一直没有新区块产出，进行增加，一直到全网validators都可以产生新区块（这个时候Snowman++就蜕化成Snowman）。</p>
+<p>在Snowman++中，并不是每个节点都可以随时的产生新区块（但并没有减弱去中心化），所以每次VM有数据需要写入区块的时候，要先通知engine,有engine根据Snowman++规则确定是否可以生成区块，如果不能，则把数据gossip到全网中让其他节点知道该数据（交易）。如果刚好本节点可以生成区块，则engine 直接调用VM的<code>BuildBlock()</code>。这就意味着engine收到 <code>PendingTxs</code> message就一定会立即调用<code>BuildBlock()</code>。</p>
+<p>当consensus engine调用 <code>BuildBlock</code>，VM会在当前的<a href="#set-preference">preferred block</a>块的基础上创建一个新区块。</p>
+<h4 id="parse-block"><a class="header" href="#parse-block">Parse Block</a></h4>
+<p>Parse block 将[]byte 解析成block对象，同时可以进行区块格式的检查，确保区块数据符合规则，没有数据错误、丢失。</p>
+<p><code>ParseBlock(bytes []byte)</code> attempts to parse a byte array into a block, so that it can return the block interface to the consensus engine. ParseBlock can perform syntactic verification to ensure that a block is well formed. For example, if a certain field of a block is invalid such that the block can be immediately determined to not be valid, ParseBlock can immediately return an error so that the consensus engine does not need to do the extra work of verifying it.</p>
+<p>It is required for all historical blocks to be parsable.</p>
+<h4 id="getblock"><a class="header" href="#getblock">GetBlock</a></h4>
+<p>GetBlock用于向VM获取VM已经知晓的区块，如果区块已经通过verified验证，VM要求返回这个uniquified block一直到该区块被Accept or Reject。
+GetBlock fetches blocks that are already known to the VM. If the block has been verified, the VM is required to return that uniquified block when requested until Accept or Reject are called. After a block has been decided, it is no longer necessary to return a uniquified block, and if the block has been rejected the VM is no longer required to store that block or return it at all.</p>
+<h4 id="set-preference"><a class="header" href="#set-preference">Set Preference</a></h4>
+<p>The VM implements the function <code>SetPreference(blkID ids.ID)</code> to allow the consensus engine to notify the VM which block is currently preferred to be accepted. The VM should use this information to set the head of its blockchain. Most importantly, when the consensus engine calls BuildBlock, the VM should be sure to build on top of the block that is the most recently set preference.</p>
+<p>Note: SetPreference will always be called with a block that has no verified children.</p>
+<h3 id="implementing-the-snowman-vm-block"><a class="header" href="#implementing-the-snowman-vm-block">Implementing the Snowman VM Block</a></h3>
+<p>从consensue engine的角度上看，VM的状态state可以定义为一条线性链，该链从创世块开始，一直到最后被接受的区块。</p>
+<p>从最新的被共识接受的区块开始，共识可能同时处理着多个区块（其实引擎处理的区块是从最新接受的区块开始加上往后的部分，最新被接受区块之前的历史祖先区块全部都是已经接受的区块，共识引擎不在处理这部分内容）。最新接受的区块开始加上往后的区块的布局为一颗以最新接受块为root的树型结构。</p>
+<p>在实践中，看起来是这种结构：</p>
+<pre><code>    G
+    |
+    .
+    .
+    .
+    |
+    L
+    |
+    A
+  /   \
+ B     C
+</code></pre>
+<p>这图例中，G -&gt; ... -&gt; L 就是已经被共识接受的线型链，共识引擎将不在处理。</p>
+<p>A区块（父区块为L）区块 B and C（两个都以区块A作为父区块）都是consensus engine处理的内容。</p>
+<p>从engine的角度看来，我们将这种状态称为ChainVM的一种可能配置，我们将试图明确定义从这个配置到下一个配置的一系列可能的步骤，这些步骤必须由ChainVM正确实现。</p>
+<p>consensus engine配置好各种参数正常运行后，主要做三件操作：</p>
+<ol>
+<li>
+<p>engine将尝试verify验证一个区块，验证其父区块是否是最新接受的区块或者是在共识处理池中的区块。（如果是历史区块不符合规则）</p>
+</li>
+<li>
+<p>共识engine调整其preference</p>
+</li>
+<li>
+<p>共识engine 就根据投票结果达成共识，然后对一系列的区块进行Accept/Reject操作。</p>
+</li>
+</ol>
+<p>如果共识引擎达到某一个共识, 然后就对一个或者多个区块开始执行如下操作:</p>
+<ol>
+<li>Call Accept on a block</li>
+<li>Call Reject on all transitive conflicts</li>
+<li>Repeat steps 1-2 until there are no more blocks to accept</li>
+</ol>
+<p>因此，如果共识处理区（池）区块树（）是在共识处理中的，其结构就是这样：</p>
+<pre><code>    L
+  /   \
+ A     B
+ |    / \
+ C   D   G
+    / \ 
+   E   F
+</code></pre>
+<p>如果engine同时确定了AC为共识分支，共识引擎就执行下面的操作：</p>
+<ol>
+<li>Accept(A)</li>
+<li>Reject(B), Reject(D), Reject(E), Reject(F), and Reject(G)</li>
+<li>Accept(C)</li>
+</ol>
+<p>To see the actual code where Accept/Reject are performed, look <a href="../snow/consensus/snowman/topological.go">这里.</a></p>
+<h3 id="block-statuses"><a class="header" href="#block-statuses">Block Statuses</a></h3>
+<p>A block's status must be one of <code>Accepted</code>, <code>Rejected</code>, <code>Processing</code>.</p>
+<p>A block that is <code>Accepted</code> or <code>Rejected</code> is considered to be <code>Decided</code>.</p>
+<h4 id="processing-blocks"><a class="header" href="#processing-blocks">Processing Blocks</a></h4>
+<p>如果一个区块的status是<code>Processing</code>，则表示当前有该区块的字节序列，并已经解析成为对象，但是区块还没有被处理。
+此外，处于 <code>Processing</code>状态的区块可能已经通过<code>Verify()</code>，也可能还没有，因此一个<code>Processing</code>状态的区块不一定已发到共识引擎中去处理，有可能在等待获取其祖先区块。一个区块发往共识区中处理之前，引擎会先对区块进行<code>Verify()</code>验证。
+列如，当一个节点从网络上收到一个节点，它会先调用<code>ParseBlock(blockBytes)</code>得到一个区块对象发给engine。这个时候该区块还没有全面verified，也还没发送到共识处理池子中。需要等engine获取（从网络上）该区块的还未被共识接受所有祖先区块（即追溯到最新共识接受的区块）后，准备将该区块放入共识处理池中的时候，engine就会对该区块及其所有祖先区块进行<code>Verify()</code> ，通过Verify()无错误后，才将该区块加入到共识处理池子中。</p>
+<h4 id="accepted-blocks"><a class="header" href="#accepted-blocks">Accepted Blocks</a></h4>
+<p>当一个区块被共识引擎处理后认为是<code>Accepted</code>，则表示该区块已经在全网达成共识，写入区块链中。一个Accepted 区块都可以通过VM的<code>GetBlock</code>获取。</p>
+<h4 id="rejected-blocks"><a class="header" href="#rejected-blocks">Rejected Blocks</a></h4>
+<p>当一个区块被共识引擎<code>Reject</code>之后，就被认为是没有被网络共识接受的区块，就没有必要继续保存，但是从性能的角度考虑，一般不立即删除该信息（记录该区块被reject的信息），会保存在缓存区一段时间，然后区块链（共识接受）高度已经超过该rejected区块的高度之后，就可以删除相关处理记录了，因为共识网络不会再处理区块高度低于当前区块链高度的区块。</p>
+<h3 id="uniquifying-blocks"><a class="header" href="#uniquifying-blocks">Uniquifying Blocks</a></h3>
+<p>！！！ 
+这一部分似乎是在讲统一区块的问题，因为avalanche snowman处理共识是在区块级别层面的，就是对区块进行投票确认。但是区块中的内容需要在共识实践层面解决，否则区块在生成阶段会造成混乱。
+通俗说来，就是snowman是用于在大家就全网一部分区块的共识达成过程上。但是全网的交易打包成统一的区块的事情上不是snowman可以处理的。
+一个节点收到的区块数据是可以重新拆分加入更多交易的。
+！！！</p>
+<p>The consensus engine requires that the VM return a unique reference to blocks when they are in consensus.</p>
+<p>To repeat, from the perspective of the VM, a block is in consensus if <code>Verify()</code> has been called on it and it returned no error, but the block has not yet been decided. In other words, <code>Verify()</code> has successfully returned, but not yet been followed by <code>Accept()</code> or <code>Reject()</code>.</p>
+<p>如果一个区块是processing中的，
+When a block is processing, the VM needs to ensure that any function on the VM that gets called and returns a block, returns a reference to that same block that the consensus engine has a reference to.</p>
+<p>如果一个区块已经被共识处理（被接受或者被拒绝），engine 就不会在对这个区块<code>Verify()</code>, <code>Accept()</code>, or <code>Reject()</code>。因为这个区块再也不会被共识引擎处理。
+After a block has been decided, the consensus engine will not call <code>Verify()</code>, <code>Accept()</code>, or <code>Reject()</code> on the same block again. Since the block will not go through consensus again, it's safe to return a non-unique block if that block has already been decided.</p>
+<p>如果一个区块正在processing,but hasn't been verified(i.e.区块还没有被发往共识处理池)，这个时候，it is safe to return a non-unique block.
+Verify()本质是验证区块的正确性，即是各个方面数据格式、交易逻辑都是符合规定、符合业务定义的逻辑，一个通过verify的区块，就是一个等待共识写入的合格区块，如果共识达成，区块就会写入区块链，作为最新接受的block,如果共识拒绝，就丢弃。</p>
+<p>只要一通过<code>Verify()</code>。
+Once <code>Verify()</code> has been called and returns a non-nil error, the VM must subsequently return a reference to the same block.</p>
+<p>This means that the VM needs to handle uniquification and leads to very specific requirements for how blocks are cached. This is why the <a href="./components/chain/">chain</a> package was implemented to create a simple helper that helps a VM implement an efficient caching layer while correctly uniquifying blocks. For an example of how it's used, you can look at the <a href="./rpcchainvm/">rpcchainvm</a>.</p>
+<h2 id="snowman-vm-apis"><a class="header" href="#snowman-vm-apis">Snowman VM APIs</a></h2>
+<p>The VM must also implement <code>CreateHandlers()</code> which can return a map of extensions mapped to HTTP handlers that will be added to the node's API server. This allows the VM to expose APIs for querying and interacting with the blockchain implemented by the API.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="chapter2.3.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="chapter3.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="chapter2.3.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="chapter3.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </body>
+</html>
