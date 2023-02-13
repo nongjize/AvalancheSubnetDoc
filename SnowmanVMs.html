@@ -148,10 +148,8 @@
 <p>For each blockchain, consensus is driven by the consensus engine. For each subnet, the P-Chain, or Platform Chain, defines the validator set and the set of blockchains that are validated by the subnet.</p>
 <p>A blockchain consists of two components: a consensus engine and a Virtual Machine (VM). The consensus engine samples validators, handles the responses, and pushes the results of the completed polls into the consensus <a href="../snow/consensus/">code</a> to decide which containers to Accept/Reject. The VM encodes the application logic for the blockchain. The VM defines the contents of a block, the rules for determining whether a block is valid, the APIs exposed to users, the state transition that occurs if a given block is accepted, and so on.</p>
 <p>The consensus engine is general and agnostic to the application semantics of the blockchain. There are two consensus engine implementations in AvalancheGo: Snowman and Avalanche. Snowman provides a consensus engine for linear chains and Avalanche provides a consensus engine for DAGs. These consensus engine implementations can be re-used for multiple different blockchains in the Avalanche ecosystem, and each blockchain actually runs its own independent instance of consensus.</p>
-<p>在Avalanche上发布一条区块链，只需要根据要求接口将application业务逻辑实现成为一个VM即可，共识部分交给已有的共识引擎来完成实现。
-To launch a blockchain on Avalanche, you just need to write a VM that defines your application; the consensus part is handled by the existing consensus engine implementations.</p>
-<p>This document will go into the details of implementing a ChainVM to run on the Snowman consensus engine. To implement a VM for snowman, we just need to implement the <code>ChainVM</code> interface defined <a href="../snow/engine/snowman/block/vm.go">here.</a></p>
-<p>VMs are reusable. Arbitrarily many blockchains can run the same VM. Each blockchain has its own state. In this way, a VM is to a blockchain what a class is to an instance of a class in an object-oriented programming language.</p>
+<p>在Avalanche上发布一条区块链，只需要根据要求接口将application业务逻辑实现成为一个VM即可，共识部分交给已有的共识引擎来完成实现。</p>
+<p>本文介绍一个运行在snowman consensus engine上的一个 ChainVM 实现的细节。一个在 snowm 上运行的VM，需要实现<code>ChainVM</code>接口。VMs是可复用的，任何区块链都可以运行运行相同的VM,没一条区块链都有自己的状态。这种方式，VM相对于某一个具体对应的运行该VM的区块来说，就好比面向对象编程语言范式中一个类的实例对应于该类。</p>
 <h2 id="从consensus-engine-的角度看-snowmanvm"><a class="header" href="#从consensus-engine-的角度看-snowmanvm">从consensus engine 的角度看 SnowmanVM</a></h2>
 <p>对应consensus engine 来说，SnowmanVM就是一个黑盒子，是一个有着严格规定的数据处理模块，可以用来创建区块，解析区块，保存区块，同时提供了一些区块处理的方法供引擎调用。</p>
 <h3 id="snowman-vm-处理区块的相关功能"><a class="header" href="#snowman-vm-处理区块的相关功能">Snowman VM 处理区块的相关功能</a></h3>
@@ -164,15 +162,12 @@ VM可以通过一个<code>toEngine</code> channel向engine发送消息（这个c
 <p>在Snowman++中，并不是每个节点都可以随时的产生新区块（但并没有减弱去中心化），所以每次VM有数据需要写入区块的时候，要先通知engine,有engine根据Snowman++规则确定是否可以生成区块，如果不能，则把数据gossip到全网中让其他节点知道该数据（交易）。如果刚好本节点可以生成区块，则engine 直接调用VM的<code>BuildBlock()</code>。这就意味着engine收到 <code>PendingTxs</code> message就一定会立即调用<code>BuildBlock()</code>。</p>
 <p>当consensus engine调用 <code>BuildBlock</code>，VM会在当前的<a href="#set-preference">preferred block</a>块的基础上创建一个新区块。</p>
 <h4 id="parse-block"><a class="header" href="#parse-block">Parse Block</a></h4>
-<p>Parse block 将[]byte 解析成block对象，同时可以进行区块格式的检查，确保区块数据符合规则，没有数据错误、丢失。</p>
-<p><code>ParseBlock(bytes []byte)</code> attempts to parse a byte array into a block, so that it can return the block interface to the consensus engine. ParseBlock can perform syntactic verification to ensure that a block is well formed. For example, if a certain field of a block is invalid such that the block can be immediately determined to not be valid, ParseBlock can immediately return an error so that the consensus engine does not need to do the extra work of verifying it.</p>
-<p>It is required for all historical blocks to be parsable.</p>
+<p>Parse block 将[]byte 解析成block对象，同时可以进行区块格式、语法等的检查，确保区块数据符合规则，没有数据错误、丢失。例如，如果解析、反序列化后得到的某一个字段是invalid。则，ParseBlcok就会立即返回一个错误给引擎，引擎就不用再进一步对该区块继续verifing。所有历史区块数据（保存在本地数据库中）都是可以解析的。</p>
 <h4 id="getblock"><a class="header" href="#getblock">GetBlock</a></h4>
-<p>GetBlock用于向VM获取VM已经知晓的区块，如果区块已经通过verified验证，VM要求返回这个uniquified block一直到该区块被Accept or Reject。
-GetBlock fetches blocks that are already known to the VM. If the block has been verified, the VM is required to return that uniquified block when requested until Accept or Reject are called. After a block has been decided, it is no longer necessary to return a uniquified block, and if the block has been rejected the VM is no longer required to store that block or return it at all.</p>
+<p>GetBlock用于向VM获取VM已经知晓的区块，如果区块已经通过verified验证，VM要求返回这个uniquified block一直到该区块被Accept or Reject。当一个区块has been decided(已被Accept或Reject,数据库会保存已经accept的区块)，这个时候就不在需要返回一个uniquifying block,如果区块是被reject,后续也不会要求VM去处理这个区块或者返回该区块。</p>
 <h4 id="set-preference"><a class="header" href="#set-preference">Set Preference</a></h4>
-<p>The VM implements the function <code>SetPreference(blkID ids.ID)</code> to allow the consensus engine to notify the VM which block is currently preferred to be accepted. The VM should use this information to set the head of its blockchain. Most importantly, when the consensus engine calls BuildBlock, the VM should be sure to build on top of the block that is the most recently set preference.</p>
-<p>Note: SetPreference will always be called with a block that has no verified children.</p>
+<p>VM需要实现一个function <code>SetPreference(blkID ids.ID)</code>。这个是consensus engine需要用于通知VM哪个区块是当前的preferred 区块。VM用Preferred区块作为其区块链的头（方向）。更重要的是当consensus engine calls buildblock的时候，VM需要保证新建的区块的父区块是recently preference。
+注意：一般区块下，SetPreference都会用一个没有verified子区块的区块来做 preference。</p>
 <h3 id="implementing-the-snowman-vm-block"><a class="header" href="#implementing-the-snowman-vm-block">Implementing the Snowman VM Block</a></h3>
 <p>从consensue engine的角度上看，VM的状态state可以定义为一条线性链，该链从创世块开始，一直到最后被接受的区块。</p>
 <p>从最新的被共识接受的区块开始，共识可能同时处理着多个区块（其实引擎处理的区块是从最新接受的区块开始加上往后的部分，最新被接受区块之前的历史祖先区块全部都是已经接受的区块，共识引擎不在处理这部分内容）。最新接受的区块开始加上往后的区块的布局为一颗以最新接受块为root的树型结构。</p>
@@ -238,24 +233,25 @@ GetBlock fetches blocks that are already known to the VM. If the block has been 
 <h4 id="rejected-blocks"><a class="header" href="#rejected-blocks">Rejected Blocks</a></h4>
 <p>当一个区块被共识引擎<code>Reject</code>之后，就被认为是没有被网络共识接受的区块，就没有必要继续保存，但是从性能的角度考虑，一般不立即删除该信息（记录该区块被reject的信息），会保存在缓存区一段时间，然后区块链（共识接受）高度已经超过该rejected区块的高度之后，就可以删除相关处理记录了，因为共识网络不会再处理区块高度低于当前区块链高度的区块。</p>
 <h3 id="uniquifying-blocks"><a class="header" href="#uniquifying-blocks">Uniquifying Blocks</a></h3>
-<p>！！！ 
+<p>该段内容理解（版本一）！！！ 
 这一部分似乎是在讲统一区块的问题，因为avalanche snowman处理共识是在区块级别层面的，就是对区块进行投票确认。但是区块中的内容需要在共识实践层面解决，否则区块在生成阶段会造成混乱。
 通俗说来，就是snowman是用于在大家就全网一部分区块的共识达成过程上。但是全网的交易打包成统一的区块的事情上不是snowman可以处理的。
 一个节点收到的区块数据是可以重新拆分加入更多交易的。
 ！！！</p>
-<p>The consensus engine requires that the VM return a unique reference to blocks when they are in consensus.</p>
-<p>To repeat, from the perspective of the VM, a block is in consensus if <code>Verify()</code> has been called on it and it returned no error, but the block has not yet been decided. In other words, <code>Verify()</code> has successfully returned, but not yet been followed by <code>Accept()</code> or <code>Reject()</code>.</p>
-<p>如果一个区块是processing中的，
-When a block is processing, the VM needs to ensure that any function on the VM that gets called and returns a block, returns a reference to that same block that the consensus engine has a reference to.</p>
-<p>如果一个区块已经被共识处理（被接受或者被拒绝），engine 就不会在对这个区块<code>Verify()</code>, <code>Accept()</code>, or <code>Reject()</code>。因为这个区块再也不会被共识引擎处理。
-After a block has been decided, the consensus engine will not call <code>Verify()</code>, <code>Accept()</code>, or <code>Reject()</code> on the same block again. Since the block will not go through consensus again, it's safe to return a non-unique block if that block has already been decided.</p>
+<p>该段内容理解（版本二）！！！
+如果区块还在共识处理中，这个时候VM及其相关数据库是没有记录进入区块的（也就是还没有加入区块链）。但是如果引擎有需要，向VM发起询问，VM也应该要能回复一个和引擎统一的区块。
+也就是说，该区块是属于缓存中的区块，还在共识处理中，这个时候VM和引擎在涉及到这些区块的处理时，都是统一操作缓存区的区块数据，所以叫Uniquifying blocks。
+！！！</p>
+<p>当区块是在共识处理状态时，要求VM返回该区块的时候，需要返回的是 a unique reference to blocks。
+也就是说，在VM的角度看来，当一个区块在 <code>Verify()</code>正确通过之后，但是还没有 <code>Accept()</code> or <code>Reject()</code>的时候，就是在共识处理状态，这个时候就区块还没有达成共识，不能写入数据库，是属于在缓存区中的数据，这个时候需要VM返回该区块的话，VM就应返回一个缓存区的一个的reference,并给到engine。</p>
+<p>如果一个区块是processing中的，VM返回这些区块的时候是和engine返回的区块是相同区块的引用。</p>
+<p>如果一个区块已经被共识处理（被接受或者被拒绝），engine 就不会在对这个区块<code>Verify()</code>, <code>Accept()</code>, or <code>Reject()</code>。因为这个区块再也不会被共识引擎处理。这个时候返回一个non-unique区块是安全的。</p>
 <p>如果一个区块正在processing,but hasn't been verified(i.e.区块还没有被发往共识处理池)，这个时候，it is safe to return a non-unique block.
 Verify()本质是验证区块的正确性，即是各个方面数据格式、交易逻辑都是符合规定、符合业务定义的逻辑，一个通过verify的区块，就是一个等待共识写入的合格区块，如果共识达成，区块就会写入区块链，作为最新接受的block,如果共识拒绝，就丢弃。</p>
-<p>只要一通过<code>Verify()</code>。
-Once <code>Verify()</code> has been called and returns a non-nil error, the VM must subsequently return a reference to the same block.</p>
-<p>This means that the VM needs to handle uniquification and leads to very specific requirements for how blocks are cached. This is why the <a href="./components/chain/">chain</a> package was implemented to create a simple helper that helps a VM implement an efficient caching layer while correctly uniquifying blocks. For an example of how it's used, you can look at the <a href="./rpcchainvm/">rpcchainvm</a>.</p>
-<h2 id="snowman-vm-apis"><a class="header" href="#snowman-vm-apis">Snowman VM APIs</a></h2>
-<p>The VM must also implement <code>CreateHandlers()</code> which can return a map of extensions mapped to HTTP handlers that will be added to the node's API server. This allows the VM to expose APIs for querying and interacting with the blockchain implemented by the API.</p>
+<p>只要一通过<code>Verify()</code>。VM后续返回的就是该同一区块的引用。
+着意味着VM需要处理关于统一缓存区区块的相关细节业务。所以./components/chain/ package就是用来处理、实现一个高效的缓存模块。rpcchainvm中就用到该模块来实现。</p>
+<h2 id="创建-apis"><a class="header" href="#创建-apis">创建 APIs</a></h2>
+<p>VM还需要实现 <code>CreateHandlers()</code>，用于创建返回一个(路径——&gt;http handler)的map列表,用于向节点API server中添加关于该条链的各种API。这样节点就可以向外部提供在该区块链上的相关操作交互API。</p>
 
                     </main>
 
